@@ -83,6 +83,11 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleWebSearch = () => {
+    const searchMessage = message.trim() || "Search for current legal information and recent case law";
+    onSendMessage(searchMessage + " [WEB_SEARCH_REQUESTED]", searchMessage + "\n\n🔍 Searching web for current legal information...");
+  };
+
   return (
     <div className="border-t border-gray-200 bg-white">
       <div className="max-w-4xl mx-auto p-4">
