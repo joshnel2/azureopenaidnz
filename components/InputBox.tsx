@@ -139,26 +139,26 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-colors duration-200 disabled:opacity-50"
+              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
               title="Upload documents for analysis"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
-              <span>Upload Files</span>
+              <span className="font-medium">Upload Files</span>
             </button>
 
             {/* Document Generation Button */}
             <button
               onClick={handleDocumentRequest}
               disabled={disabled}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-colors duration-200 disabled:opacity-50"
+              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
               title="Request document templates or generation"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span>Create Document</span>
+              <span className="font-medium">Create Document</span>
             </button>
           </div>
 
@@ -166,9 +166,9 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           <button
             onClick={handleSubmit}
             disabled={disabled || (!message.trim() && uploadedFiles.length === 0)}
-            className="flex items-center space-x-2 px-6 py-2 bg-law-blue text-white rounded-lg hover:bg-law-blue-dark focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+            className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
           >
-            <span className="text-sm font-medium">Send</span>
+            <span className="text-sm font-semibold">Send</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>

@@ -90,12 +90,13 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+        className="fixed top-4 left-4 z-50 flex items-center space-x-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50"
         title="Chat History"
       >
         <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
+        <span className="text-sm font-medium text-gray-700">Chat History</span>
       </button>
 
       {/* Sidebar */}
