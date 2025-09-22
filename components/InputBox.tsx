@@ -83,11 +83,6 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDocumentRequest = () => {
-    const docMessage = "I need help creating a legal document. Please provide me with a template or help me draft one.";
-    onSendMessage(docMessage);
-  };
-
   return (
     <div className="border-t border-gray-200 bg-white">
       <div className="max-w-4xl mx-auto p-4">
@@ -154,19 +149,6 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
               <span className="font-medium">Upload Files</span>
-            </button>
-
-            {/* Document Generation Button */}
-            <button
-              onClick={handleDocumentRequest}
-              disabled={disabled}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
-              title="Request document templates or generation"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="font-medium">Create Document</span>
             </button>
           </div>
 
