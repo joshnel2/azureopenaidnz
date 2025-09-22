@@ -59,13 +59,55 @@ export default function ChatWindow() {
   const saveChatSession = (messages: Message[]) => {
     if (messages.length === 0) return;
     
-    // Generate a title from the first user message
-    const firstUserMessage = messages.find(m => m.role === 'user');
+    // Generate an intelligent title based on conversation content
     let title = 'New Chat';
-    if (firstUserMessage) {
-      title = firstUserMessage.content.slice(0, 50);
-      if (firstUserMessage.content.length > 50) {
-        title += '...';
+    
+    if (messages.length >= 2) {
+      // Try to generate a smart summary
+      const userMessages = messages.filter(m => m.role === 'user').map(m => m.content);
+      const assistantMessages = messages.filter(m => m.role === 'assistant').map(m => m.content);
+      
+      // Look for key legal topics in the conversation
+      const allContent = [...userMessages, ...assistantMessages].join(' ').toLowerCase();
+      
+      if (allContent.includes('contract') || allContent.includes('agreement')) {
+        title = 'Contract & Agreement Discussion';
+      } else if (allContent.includes('employment') || allContent.includes('workplace')) {
+        title = 'Employment Law Consultation';
+      } else if (allContent.includes('real estate') || allContent.includes('property') || allContent.includes('lease')) {
+        title = 'Real Estate Legal Matter';
+      } else if (allContent.includes('litigation') || allContent.includes('lawsuit') || allContent.includes('court')) {
+        title = 'Litigation & Court Matters';
+      } else if (allContent.includes('corporate') || allContent.includes('business') || allContent.includes('company')) {
+        title = 'Corporate Law Consultation';
+      } else if (allContent.includes('nda') || allContent.includes('non-disclosure') || allContent.includes('confidential')) {
+        title = 'Confidentiality & NDA Discussion';
+      } else if (allContent.includes('intellectual property') || allContent.includes('patent') || allContent.includes('trademark')) {
+        title = 'Intellectual Property Matter';
+      } else if (allContent.includes('uploaded files') || allContent.includes('📎')) {
+        title = 'Document Analysis Session';
+      } else if (allContent.includes('template') || allContent.includes('draft') || allContent.includes('document')) {
+        title = 'Document Creation & Templates';
+      } else {
+        // Fallback: use first user message but make it more descriptive
+        const firstUserMessage = messages.find(m => m.role === 'user');
+        if (firstUserMessage) {
+          const content = firstUserMessage.content.replace(/📎.*$/m, '').trim(); // Remove file indicators
+          title = content.slice(0, 45);
+          if (content.length > 45) {
+            title += '...';
+          }
+        }
+      }
+    } else {
+      // Single message - use first user message
+      const firstUserMessage = messages.find(m => m.role === 'user');
+      if (firstUserMessage) {
+        const content = firstUserMessage.content.replace(/📎.*$/m, '').trim();
+        title = content.slice(0, 45);
+        if (content.length > 45) {
+          title += '...';
+        }
       }
     }
     
