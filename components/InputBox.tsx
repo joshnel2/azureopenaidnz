@@ -231,10 +231,10 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         className="hidden"
       />
 
-        {/* Professional Disclaimer */}
+        {/* Internal Use Notice */}
         <div className="mt-3 text-center">
           <p className="text-xs text-gray-500">
-            This AI provides general legal information only. Always consult with a qualified attorney for personalized legal advice.
+            Internal Legal Assistant • For Dorf Nelson & Zauderer staff use only • Confidential work product
           </p>
         </div>
       </div>
