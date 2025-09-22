@@ -80,7 +80,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const result = e.target?.result;
         
         if (file.type === 'application/pdf') {
