@@ -149,9 +149,18 @@ export default function ChatWindow() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive, but scroll to top for empty chats
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0 && !streamingMessage) {
+      // Scroll to top for welcome message
+      const messagesContainer = document.querySelector('.chat-messages-container');
+      if (messagesContainer) {
+        messagesContainer.scrollTop = 0;
+      }
+    } else {
+      // Scroll to bottom for ongoing conversations
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, streamingMessage]);
 
   const handleSendMessage = async (aiContent: string, displayContent?: string) => {
@@ -273,7 +282,7 @@ export default function ChatWindow() {
       <div className="flex flex-col h-full bg-white">
 
       {/* Messages - ChatGPT Style */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto chat-messages-container">
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 && !streamingMessage && (
             <div className="text-center py-16 px-4">
