@@ -8,6 +8,18 @@ interface MessageBubbleProps {
   timestamp: Date;
 }
 
+const downloadDocument = (content: string, filename: string) => {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 export default function MessageBubble({ message, isUser, timestamp }: MessageBubbleProps) {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', { 
@@ -17,30 +29,75 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
     });
   };
 
+  // Check if message contains document content that can be downloaded
+  const isDocument = message.includes('CONTRACT') || message.includes('AGREEMENT') || 
+                    message.includes('TEMPLATE') || message.includes('DOCUMENT');
+
+  const handleDownload = () => {
+    const filename = `legal_document_${Date.now()}.txt`;
+    downloadDocument(message, filename);
+  };
+
   return (
-    <div className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-[70%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Avatar */}
-        <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-            isUser ? 'bg-law-blue' : 'bg-gray-600'
+    <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={`flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Professional Avatar */}
+        <div className={`flex-shrink-0 ${isUser ? 'ml-4' : 'mr-4'}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg ${
+            isUser 
+              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark' 
+              : 'bg-gradient-to-br from-gray-600 to-gray-800'
           }`}>
-            {isUser ? 'U' : 'AI'}
+            {isUser ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            )}
           </div>
         </div>
         
         {/* Message content */}
         <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-          <div className={`px-4 py-3 rounded-2xl ${
+          {/* Message bubble */}
+          <div className={`px-6 py-4 rounded-2xl shadow-sm border ${
             isUser 
-              ? 'bg-law-blue text-white rounded-br-md' 
-              : 'bg-gray-100 text-gray-800 rounded-bl-md'
+              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark text-white rounded-br-lg border-law-blue/20' 
+              : 'bg-white text-gray-800 rounded-bl-lg border-gray-200'
           }`}>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message}</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap font-medium">{message}</p>
+            
+            {/* Download button for documents */}
+            {!isUser && isDocument && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center space-x-2 px-3 py-2 bg-law-blue text-white rounded-lg hover:bg-law-blue-dark transition-colors duration-200 text-xs font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Download Document</span>
+                </button>
+              </div>
+            )}
           </div>
-          <span className="text-xs text-gray-500 mt-1 px-1">
-            {formatTime(timestamp)}
-          </span>
+          
+          {/* Timestamp and status */}
+          <div className={`flex items-center space-x-2 mt-2 px-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+            <span className="text-xs text-gray-500 font-medium">
+              {formatTime(timestamp)}
+            </span>
+            {!isUser && (
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <span className="text-xs text-gray-500">Legal Assistant</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
