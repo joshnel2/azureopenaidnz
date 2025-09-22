@@ -10,6 +10,24 @@ export interface ChatRequest {
   messages: ChatMessage[];
 }
 
+async function searchWeb(query: string) {
+  try {
+    const searchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    
+    if (searchResponse.ok) {
+      const { results } = await searchResponse.json();
+      return results;
+    }
+  } catch (error) {
+    console.error('Web search failed:', error);
+  }
+  return [];
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { messages }: ChatRequest = await req.json();
@@ -21,10 +39,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Add system prompt as the first message
+    // Get the latest user message
+    const latestUserMessage = messages[messages.length - 1];
+    
+    // Check if we should search for current information
+    const shouldSearch = latestUserMessage?.content && (
+      latestUserMessage.content.toLowerCase().includes('current') ||
+      latestUserMessage.content.toLowerCase().includes('recent') ||
+      latestUserMessage.content.toLowerCase().includes('latest') ||
+      latestUserMessage.content.toLowerCase().includes('2024') ||
+      latestUserMessage.content.toLowerCase().includes('2025') ||
+      latestUserMessage.content.toLowerCase().includes('new law') ||
+      latestUserMessage.content.toLowerCase().includes('case law')
+    );
+
+    let searchResults = '';
+    if (shouldSearch && latestUserMessage) {
+      console.log('Searching web for current legal information...');
+      const results = await searchWeb(latestUserMessage.content);
+      if (results && results.length > 0) {
+        searchResults = '\n\n--- CURRENT LEGAL INFORMATION FROM WEB SEARCH ---\n\n';
+        results.forEach((result: any, index: number) => {
+          searchResults += `${index + 1}. ${result.title}\n${result.snippet}\nSource: ${result.url}\n\n`;
+        });
+        searchResults += '--- END WEB SEARCH RESULTS ---\n\n';
+      }
+    }
+
+    // Add system prompt with web search results if available
+    const enhancedSystemPrompt = SYSTEM_PROMPT + (searchResults ? 
+      '\n\nYou have access to current legal information from web search. Use this information to provide up-to-date legal guidance while maintaining all disclaimers.' : '');
+
     const messagesWithSystem: ChatMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...messages
+      { role: 'system', content: enhancedSystemPrompt },
+      ...messages.slice(0, -1), // All messages except the last one
+      { role: 'user', content: latestUserMessage.content + searchResults } // Add search results to last message
     ];
 
     const stream = new ReadableStream({
