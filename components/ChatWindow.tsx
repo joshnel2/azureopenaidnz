@@ -228,18 +228,59 @@ export default function ChatWindow() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 && !streamingMessage && (
-            <div className="text-center py-20">
-              <div className="w-16 h-16 bg-law-blue rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+            <div className="text-center py-16 px-4">
+              <div className="max-w-2xl mx-auto">
+                <div className="w-20 h-20 bg-gradient-to-br from-law-blue to-law-blue-dark rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  How can I assist with your legal needs?
+                </h2>
+                <p className="text-lg text-gray-600 mb-12 leading-relaxed">
+                  I'm your professional legal assistant, ready to help with corporate law, litigation, real estate matters, document analysis, and legal research.
+                </p>
+                
+                {/* Professional Feature Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                    <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Legal Consultation</h3>
+                    <p className="text-sm text-gray-600">Get expert guidance on corporate, litigation, and real estate law</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Document Analysis</h3>
+                    <p className="text-sm text-gray-600">Upload and analyze contracts, agreements, and legal documents</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                    <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Document Creation</h3>
+                    <p className="text-sm text-gray-600">Generate professional legal templates and forms</p>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 bg-gray-50 inline-block px-4 py-2 rounded-full">
+                    💡 Start by typing your question below or uploading a document
+                  </p>
+                </div>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                How can I help you today?
-              </h2>
-              <p className="text-gray-600 max-w-md mx-auto">
-                Ask me about legal matters, upload documents for analysis, or request document templates.
-              </p>
             </div>
           )}
 
@@ -262,19 +303,22 @@ export default function ChatWindow() {
             )}
 
             {isLoading && !streamingMessage && (
-              <div className="py-6">
+              <div className="py-6 bg-white border-b border-gray-100">
                 <div className="max-w-4xl mx-auto px-4">
                   <div className="flex items-start space-x-4">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
+                    <div className="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-law-blue rounded-full animate-spin"></div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-law-blue rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-law-blue rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-law-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          </div>
+                          <span className="text-sm text-gray-600 font-medium">Legal Assistant is analyzing...</span>
+                        </div>
                       </div>
                     </div>
                   </div>

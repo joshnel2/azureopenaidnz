@@ -107,21 +107,21 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
   };
 
   return (
-    <div className={`py-6 ${isUser ? 'bg-gray-50' : 'bg-white'} border-b border-gray-100`}>
+    <div className={`py-8 ${isUser ? 'bg-gradient-to-r from-gray-50 to-blue-50/30' : 'bg-white'} border-b border-gray-100/50`}>
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-start space-x-4">
-          {/* Avatar - ChatGPT Style */}
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+          {/* Enhanced Avatar */}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border-2 ${
             isUser 
-              ? 'bg-law-blue text-white' 
-              : 'bg-gray-200 text-gray-600'
+              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark text-white border-law-blue/20' 
+              : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'
           }`}>
             {isUser ? (
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             )}
