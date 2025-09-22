@@ -30,8 +30,11 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          console.log('Creating OpenAI client...');
           const { client: openaiClient, deploymentName } = createOpenAIClient();
+          console.log('Deployment name:', deploymentName);
           
+          console.log('Sending request to Azure OpenAI...');
           const response = await openaiClient.chat.completions.create({
             model: deploymentName,
             messages: messagesWithSystem.map(msg => ({
@@ -42,6 +45,8 @@ export async function POST(req: NextRequest) {
             temperature: 0.7,
             stream: true
           });
+          
+          console.log('Got response, starting to stream...');
 
           for await (const chunk of response) {
             const choice = chunk.choices[0];
