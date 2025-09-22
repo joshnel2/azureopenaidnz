@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { openaiClient, SYSTEM_PROMPT, deploymentName } from '@/lib/openai';
+import { createOpenAIClient, SYSTEM_PROMPT } from '@/lib/openai';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -30,18 +30,18 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const response = await openaiClient.getChatCompletions(
-            deploymentName,
-            messagesWithSystem.map(msg => ({
+          const { client: openaiClient, deploymentName } = createOpenAIClient();
+          
+          const response = await openaiClient.chat.completions.create({
+            model: deploymentName,
+            messages: messagesWithSystem.map(msg => ({
               role: msg.role,
               content: msg.content
             })),
-            {
-              maxTokens: 1000,
-              temperature: 0.7,
-              stream: true
-            }
-          );
+            max_tokens: 1000,
+            temperature: 0.7,
+            stream: true
+          });
 
           for await (const chunk of response) {
             const choice = chunk.choices[0];
