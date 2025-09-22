@@ -142,7 +142,7 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-[80vh] bg-white">
+    <div className="flex flex-col h-[85vh] bg-white">
       {/* Professional Header */}
       <div className="bg-gradient-to-r from-law-blue via-law-blue-dark to-indigo-900 text-white px-8 py-6 border-b border-gray-200">
         <div className="flex justify-between items-center">

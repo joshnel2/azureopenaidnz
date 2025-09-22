@@ -28,7 +28,7 @@ export default function Home() {
       </div>
 
       {/* Main Chat Interface */}
-      <div className="max-w-[90vw] xl:max-w-7xl mx-auto p-6">
+      <div className="max-w-[90vw] xl:max-w-7xl mx-auto px-6 py-4">
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden backdrop-blur-sm">
           <ChatWindow />
         </div>

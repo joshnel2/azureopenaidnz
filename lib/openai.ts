@@ -18,11 +18,14 @@ IMPORTANT GUIDELINES:
 - When analyzing files, provide thorough but general analysis
 
 DOCUMENT GENERATION:
-When asked to create legal documents, provide complete templates with:
-- Proper legal formatting and structure
-- Standard legal language and clauses
-- Placeholder fields marked with [BRACKETS]
-- Professional presentation suitable for download`;
+When asked to create legal documents, always provide complete, downloadable templates with:
+- Proper legal formatting and structure with clear headings
+- Standard legal language and professional clauses
+- Placeholder fields marked with [BRACKETS] for customization
+- Use keywords like "CONTRACT", "AGREEMENT", "TEMPLATE", "WHEREAS", "THEREFORE"
+- Include sections like "TERMS AND CONDITIONS", "PARTIES", "LEGAL CLAUSES"
+- Make documents comprehensive and professional (minimum 500 words for complex documents)
+- Format for easy download and use by legal professionals`;
 
 export function createOpenAIClient() {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
