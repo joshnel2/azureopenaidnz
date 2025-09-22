@@ -142,9 +142,9 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-[85vh] bg-white">
+    <div className="flex flex-col h-[90vh] bg-white">
       {/* Professional Header */}
-      <div className="bg-gradient-to-r from-law-blue via-law-blue-dark to-indigo-900 text-white px-8 py-6 border-b border-gray-200">
+      <div className="bg-gradient-to-r from-law-blue via-law-blue-dark to-indigo-900 text-white px-8 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
@@ -169,7 +169,7 @@ export default function ChatWindow() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 chat-scrollbar bg-gradient-to-b from-gray-50/30 to-white">
+      <div className="flex-1 overflow-y-auto px-6 py-4 chat-scrollbar bg-gradient-to-b from-gray-50/30 to-white">
         {messages.length === 0 && !streamingMessage && (
           <div className="text-center max-w-2xl mx-auto mt-12">
             <div className="w-20 h-20 bg-gradient-to-br from-law-blue to-law-blue-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
