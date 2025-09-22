@@ -8,7 +8,7 @@ interface MessageBubbleProps {
   timestamp: Date;
 }
 
-const downloadDocument = (content: string, filename: string) => {
+const downloadDocument = (content: string, filename: string, format: 'txt' | 'docx' | 'csv') => {
   // Clean up the content for better formatting
   let cleanContent = content;
   
@@ -32,7 +32,24 @@ Please consult with a qualified attorney before using this document.
 
   cleanContent = header + cleanContent + footer;
   
-  const blob = new Blob([cleanContent], { type: 'text/plain' });
+  let blob: Blob;
+  let mimeType: string;
+  
+  switch (format) {
+    case 'csv':
+      // Convert to CSV format (simple conversion)
+      const csvContent = cleanContent.split('\n').map(line => `"${line.replace(/"/g, '""')}"`).join('\n');
+      blob = new Blob([csvContent], { type: 'text/csv' });
+      break;
+    case 'docx':
+      // For now, we'll use RTF format which Word can open
+      const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}} \\f0\\fs24 ${cleanContent.replace(/\n/g, '\\par ')}}`;
+      blob = new Blob([rtfContent], { type: 'application/rtf' });
+      break;
+    default: // txt
+      blob = new Blob([cleanContent], { type: 'text/plain' });
+  }
+  
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -70,7 +87,7 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
     message.includes('ARTICLE')
   );
 
-  const handleDownload = () => {
+  const handleDownload = (format: 'txt' | 'docx' | 'csv') => {
     // Generate a descriptive filename based on content
     let docType = 'legal_document';
     
@@ -84,70 +101,75 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
     else if (message.includes('TERMS')) docType = 'terms_conditions';
     
     const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const filename = `${docType}_${timestamp}.txt`;
+    const filename = `${docType}_${timestamp}.${format}`;
     
-    downloadDocument(message, filename);
+    downloadDocument(message, filename, format);
   };
 
   return (
-    <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Professional Avatar */}
-        <div className={`flex-shrink-0 ${isUser ? 'ml-4' : 'mr-4'}`}>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg ${
+    <div className={`py-6 ${isUser ? 'bg-gray-50' : 'bg-white'} border-b border-gray-100`}>
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="flex items-start space-x-4">
+          {/* Avatar - ChatGPT Style */}
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
             isUser 
-              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark' 
-              : 'bg-gradient-to-br from-gray-600 to-gray-800'
+              ? 'bg-law-blue text-white' 
+              : 'bg-gray-200 text-gray-600'
           }`}>
             {isUser ? (
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
             ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             )}
           </div>
-        </div>
-        
-        {/* Message content */}
-        <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-          {/* Message bubble */}
-          <div className={`px-6 py-4 rounded-2xl shadow-sm border ${
-            isUser 
-              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark text-white rounded-br-lg border-law-blue/20' 
-              : 'bg-white text-gray-800 rounded-bl-lg border-gray-200'
-          }`}>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap font-medium">{message}</p>
+          
+          {/* Message content - ChatGPT Style */}
+          <div className="flex-1 min-w-0">
+            <div className="prose prose-sm max-w-none">
+              <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>
+            </div>
             
-            {/* Download button for documents */}
+            {/* Download buttons for documents */}
             {!isUser && isDocument && (
-              <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button
-                  onClick={handleDownload}
-                  className="flex items-center space-x-2 px-3 py-2 bg-law-blue text-white rounded-lg hover:bg-law-blue-dark transition-colors duration-200 text-xs font-medium"
+                  onClick={() => handleDownload('txt')}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span>Download Document</span>
+                  <span>Download as TXT</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('docx')}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors duration-200 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Download as Word</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('csv')}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-green-100 hover:bg-green-200 rounded-lg transition-colors duration-200 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Download as CSV</span>
                 </button>
               </div>
             )}
-          </div>
-          
-          {/* Timestamp and status */}
-          <div className={`flex items-center space-x-2 mt-2 px-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-            <span className="text-xs text-gray-500 font-medium">
+
+            {/* Timestamp - ChatGPT Style */}
+            <div className="mt-2 text-xs text-gray-500">
               {formatTime(timestamp)}
-            </span>
-            {!isUser && (
-              <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-gray-500">Legal Assistant</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

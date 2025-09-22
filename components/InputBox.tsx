@@ -50,7 +50,8 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
   };
 
   return (
-    <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+    <div className="border-t border-gray-200 bg-white">
+      <div className="max-w-4xl mx-auto p-4">
       {/* File Upload Area */}
       {uploadedFiles.length > 0 && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -153,13 +154,12 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         className="hidden"
       />
 
-      {/* Professional Disclaimer */}
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-600 leading-relaxed">
-          <span className="font-medium">Professional Legal Assistant</span> • This AI provides general legal information only
-          <br />
-          Always consult with a qualified attorney for personalized legal advice • Attorney-client privilege does not apply
-        </p>
+        {/* Professional Disclaimer */}
+        <div className="mt-3 text-center">
+          <p className="text-xs text-gray-500">
+            This AI provides general legal information only. Always consult with a qualified attorney for personalized legal advice.
+          </p>
+        </div>
       </div>
     </div>
   );

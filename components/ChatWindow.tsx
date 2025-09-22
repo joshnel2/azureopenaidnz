@@ -142,119 +142,75 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-[90vh] bg-white">
-      {/* Professional Header */}
-      <div className="bg-gradient-to-r from-law-blue via-law-blue-dark to-indigo-900 text-white px-8 py-4 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
+    <div className="flex flex-col h-full bg-white">
+
+      {/* Messages - ChatGPT Style */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto">
+          {messages.length === 0 && !streamingMessage && (
+            <div className="text-center py-20">
+              <div className="w-16 h-16 bg-law-blue rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                How can I help you today?
+              </h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Ask me about legal matters, upload documents for analysis, or request document templates.
+              </p>
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-wide">Legal Assistant</h1>
-              <p className="text-blue-100 text-sm font-medium">Professional Legal Guidance & Information</p>
-            </div>
-          </div>
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 text-sm font-medium border border-white/20 backdrop-blur-sm"
-            >
-              New Conversation
-            </button>
           )}
+
+          <div className="space-y-0">
+            {messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message.content}
+                isUser={message.role === 'user'}
+                timestamp={message.timestamp}
+              />
+            ))}
+
+            {streamingMessage && (
+              <MessageBubble
+                message={streamingMessage}
+                isUser={false}
+                timestamp={new Date()}
+              />
+            )}
+
+            {isLoading && !streamingMessage && (
+              <div className="py-6">
+                <div className="max-w-4xl mx-auto px-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 chat-scrollbar bg-gradient-to-b from-gray-50/30 to-white">
-        {messages.length === 0 && !streamingMessage && (
-          <div className="text-center max-w-2xl mx-auto mt-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-law-blue to-law-blue-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              Welcome to Your Professional Legal Assistant
-            </h3>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              I'm here to help with corporate law, litigation, real estate matters, and general legal questions.
-              <br />
-              Upload documents for analysis or request legal document templates.
-            </p>
-            
-            {/* Quick Start Options */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-law-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Ask Questions</h4>
-                <p className="text-sm text-gray-600">Get answers about legal matters and procedures</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Upload Documents</h4>
-                <p className="text-sm text-gray-600">Analyze contracts, agreements, and legal files</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Create Documents</h4>
-                <p className="text-sm text-gray-600">Generate legal templates and forms</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message.content}
-            isUser={message.role === 'user'}
-            timestamp={message.timestamp}
-          />
-        ))}
-
-        {streamingMessage && (
-          <MessageBubble
-            message={streamingMessage}
-            isUser={false}
-            timestamp={new Date()}
-          />
-        )}
-
-        {isLoading && !streamingMessage && (
-          <div className="flex justify-start mb-4">
-            <div className="flex items-center space-x-2 px-4 py-3 bg-gray-100 rounded-2xl rounded-bl-md">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+      {/* Input - ChatGPT Style */}
+      <div className="flex-shrink-0">
+        <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>
-
-      {/* Input */}
-      <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
     </div>
   );
 }
