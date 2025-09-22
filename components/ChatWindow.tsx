@@ -17,6 +17,7 @@ export default function ChatWindow() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [currentChatId, setCurrentChatId] = useState<string>('default');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load messages from localStorage on component mount
@@ -55,6 +56,57 @@ export default function ChatWindow() {
     setMessages([]);
   };
 
+  const saveChatSession = (messages: Message[]) => {
+    if (messages.length === 0) return;
+    
+    // Generate a title from the first user message
+    const firstUserMessage = messages.find(m => m.role === 'user');
+    let title = 'New Chat';
+    if (firstUserMessage) {
+      title = firstUserMessage.content.slice(0, 50);
+      if (firstUserMessage.content.length > 50) {
+        title += '...';
+      }
+    }
+    
+    // Get existing sessions
+    const savedSessions = localStorage.getItem('chat-sessions');
+    let sessions = [];
+    if (savedSessions) {
+      try {
+        sessions = JSON.parse(savedSessions);
+      } catch (error) {
+        console.error('Error parsing chat sessions:', error);
+      }
+    }
+    
+    // Check if current chat already exists in sessions
+    const existingSessionIndex = sessions.findIndex((s: any) => s.id === currentChatId);
+    
+    const sessionData = {
+      id: currentChatId,
+      title,
+      timestamp: new Date().toISOString(),
+      messageCount: messages.length
+    };
+    
+    if (existingSessionIndex >= 0) {
+      // Update existing session
+      sessions[existingSessionIndex] = sessionData;
+    } else {
+      // Add new session
+      sessions.unshift(sessionData);
+    }
+    
+    // Keep only last 50 sessions
+    sessions = sessions.slice(0, 50);
+    
+    localStorage.setItem('chat-sessions', JSON.stringify(sessions));
+    
+    // Trigger refresh of chat history
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -68,7 +120,8 @@ export default function ChatWindow() {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setIsLoading(true);
     setStreamingMessage('');
 
@@ -79,7 +132,7 @@ export default function ChatWindow() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
+          messages: updatedMessages.map(msg => ({
             role: msg.role,
             content: msg.content
           }))
@@ -134,7 +187,11 @@ export default function ChatWindow() {
           role: 'assistant',
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, assistantMessageObj]);
+        const finalMessages = [...updatedMessages, assistantMessageObj];
+        setMessages(finalMessages);
+        
+        // Save chat session to history
+        saveChatSession(finalMessages);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -144,7 +201,9 @@ export default function ChatWindow() {
         role: 'assistant',
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      const errorMessages = [...updatedMessages, errorMessage];
+      setMessages(errorMessages);
+      saveChatSession(errorMessages);
     } finally {
       setIsLoading(false);
       setStreamingMessage('');
@@ -161,6 +220,7 @@ export default function ChatWindow() {
         onLoadChat={(chatId) => setCurrentChatId(chatId)}
         onNewChat={createNewChat}
         currentChatId={currentChatId}
+        refreshTrigger={refreshTrigger}
       />
       <div className="flex flex-col h-full bg-white">
 

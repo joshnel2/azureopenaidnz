@@ -13,15 +13,16 @@ interface ChatHistoryProps {
   onLoadChat: (chatId: string) => void;
   onNewChat: () => void;
   currentChatId?: string;
+  refreshTrigger?: number;
 }
 
-export default function ChatHistory({ onLoadChat, onNewChat, currentChatId }: ChatHistoryProps) {
+export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refreshTrigger }: ChatHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   useEffect(() => {
     loadChatHistory();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadChatHistory = () => {
     const savedSessions = localStorage.getItem('chat-sessions');
