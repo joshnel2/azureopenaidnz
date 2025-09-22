@@ -42,21 +42,15 @@ export async function POST(req: NextRequest) {
     // Get the latest user message
     const latestUserMessage = messages[messages.length - 1];
     
-    // Check if we should search for current information
-    const shouldSearch = latestUserMessage?.content && (
-      latestUserMessage.content.toLowerCase().includes('current') ||
-      latestUserMessage.content.toLowerCase().includes('recent') ||
-      latestUserMessage.content.toLowerCase().includes('latest') ||
-      latestUserMessage.content.toLowerCase().includes('2024') ||
-      latestUserMessage.content.toLowerCase().includes('2025') ||
-      latestUserMessage.content.toLowerCase().includes('new law') ||
-      latestUserMessage.content.toLowerCase().includes('case law')
-    );
+    // Check if web search was requested
+    const shouldSearch = latestUserMessage?.content && 
+      latestUserMessage.content.includes('[WEB_SEARCH_REQUESTED]');
 
     let searchResults = '';
     if (shouldSearch && latestUserMessage) {
       console.log('Searching web for current legal information...');
-      const results = await searchWeb(latestUserMessage.content);
+      const cleanQuery = latestUserMessage.content.replace('[WEB_SEARCH_REQUESTED]', '').trim();
+      const results = await searchWeb(cleanQuery);
       if (results && results.length > 0) {
         searchResults = '\n\n--- CURRENT LEGAL INFORMATION FROM WEB SEARCH ---\n\n';
         results.forEach((result: any, index: number) => {
@@ -73,7 +67,7 @@ export async function POST(req: NextRequest) {
     const messagesWithSystem: ChatMessage[] = [
       { role: 'system', content: enhancedSystemPrompt },
       ...messages.slice(0, -1), // All messages except the last one
-      { role: 'user', content: latestUserMessage.content + searchResults } // Add search results to last message
+      { role: 'user', content: (shouldSearch ? cleanQuery : latestUserMessage.content) + searchResults } // Add search results to last message
     ];
 
     const stream = new ReadableStream({
