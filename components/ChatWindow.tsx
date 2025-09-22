@@ -149,19 +149,20 @@ export default function ChatWindow() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Auto-scroll to bottom when new messages arrive, but scroll to top for empty chats
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messages.length === 0 && !streamingMessage) {
-      // Scroll to top for welcome message
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingMessage]);
+
+  // Scroll to top when loading new chat or starting fresh
+  useEffect(() => {
+    if (messages.length === 0) {
       const messagesContainer = document.querySelector('.chat-messages-container');
       if (messagesContainer) {
         messagesContainer.scrollTop = 0;
       }
-    } else {
-      // Scroll to bottom for ongoing conversations
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, streamingMessage]);
+  }, [currentChatId]); // Only trigger when chat ID changes (new chat or loaded chat)
 
   const handleSendMessage = async (aiContent: string, displayContent?: string) => {
     const userMessage: Message = {
