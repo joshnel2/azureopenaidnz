@@ -7,19 +7,29 @@ interface InputBoxProps {
   disabled?: boolean;
 }
 
+interface FileWithContent {
+  file: File;
+  content: string;
+}
+
 export default function InputBox({ onSendMessage, disabled = false }: InputBoxProps) {
   const [message, setMessage] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithContent[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
-    if (message.trim() && !disabled) {
+    if ((message.trim() || uploadedFiles.length > 0) && !disabled) {
       let finalMessage = message.trim();
       
-      // Add file information if files are uploaded
+      // Add file content if files are uploaded
       if (uploadedFiles.length > 0) {
-        const fileList = uploadedFiles.map(f => f.name).join(', ');
-        finalMessage += `\n\n[Files uploaded: ${fileList}]`;
+        finalMessage += '\n\n--- UPLOADED FILES ---\n\n';
+        uploadedFiles.forEach((fileWithContent, index) => {
+          finalMessage += `File ${index + 1}: ${fileWithContent.file.name}\n`;
+          finalMessage += `Content:\n${fileWithContent.content}\n\n`;
+        });
+        finalMessage += '--- END FILES ---\n\n';
+        finalMessage += 'Please analyze the uploaded files and provide your legal analysis or advice based on the content above.';
       }
       
       onSendMessage(finalMessage);
@@ -35,9 +45,30 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setUploadedFiles(prev => [...prev, ...files]);
+    
+    // Read file contents
+    const filesWithContent = await Promise.all(
+      files.map(async (file) => {
+        const content = await readFileContent(file);
+        return { file, content };
+      })
+    );
+    
+    setUploadedFiles(prev => [...prev, ...filesWithContent]);
+  };
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        resolve(content);
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
   };
 
   const removeFile = (index: number) => {
@@ -59,14 +90,15 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             <span className="text-sm font-medium text-blue-800">Uploaded Files:</span>
           </div>
           <div className="space-y-2">
-            {uploadedFiles.map((file, index) => (
+            {uploadedFiles.map((fileWithContent, index) => (
               <div key={index} className="flex items-center justify-between bg-white px-3 py-2 rounded border">
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="text-sm text-gray-700">{file.name}</span>
-                  <span className="text-xs text-gray-500">({Math.round(file.size / 1024)}KB)</span>
+                  <span className="text-sm text-gray-700">{fileWithContent.file.name}</span>
+                  <span className="text-xs text-gray-500">({Math.round(fileWithContent.file.size / 1024)}KB)</span>
+                  <span className="text-xs text-green-600">✓ Content loaded</span>
                 </div>
                 <button
                   onClick={() => removeFile(index)}

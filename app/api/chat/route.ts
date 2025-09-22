@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
               role: msg.role,
               content: msg.content
             })),
-            max_completion_tokens: 2000,
             stream: true
           });
           

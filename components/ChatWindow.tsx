@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 import InputBox from './InputBox';
+import ChatHistory from './ChatHistory';
 
 interface Message {
   id: string;
@@ -15,11 +16,23 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
+  const [currentChatId, setCurrentChatId] = useState<string>('default');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load messages from localStorage on component mount
   useEffect(() => {
-    const savedMessages = localStorage.getItem('chat-messages');
+    loadChat(currentChatId);
+  }, [currentChatId]);
+
+  // Save messages to localStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(`chat-messages-${currentChatId}`, JSON.stringify(messages));
+    }
+  }, [messages, currentChatId]);
+
+  const loadChat = (chatId: string) => {
+    const savedMessages = localStorage.getItem(`chat-messages-${chatId}`);
     if (savedMessages) {
       try {
         const parsedMessages = JSON.parse(savedMessages).map((msg: any) => ({
@@ -29,16 +42,18 @@ export default function ChatWindow() {
         setMessages(parsedMessages);
       } catch (error) {
         console.error('Error loading messages from localStorage:', error);
+        setMessages([]);
       }
+    } else {
+      setMessages([]);
     }
-  }, []);
+  };
 
-  // Save messages to localStorage whenever messages change
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('chat-messages', JSON.stringify(messages));
-    }
-  }, [messages]);
+  const createNewChat = () => {
+    const newChatId = `chat-${Date.now()}`;
+    setCurrentChatId(newChatId);
+    setMessages([]);
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -137,12 +152,17 @@ export default function ChatWindow() {
   };
 
   const clearChat = () => {
-    setMessages([]);
-    localStorage.removeItem('chat-messages');
+    createNewChat();
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <>
+      <ChatHistory
+        onLoadChat={(chatId) => setCurrentChatId(chatId)}
+        onNewChat={createNewChat}
+        currentChatId={currentChatId}
+      />
+      <div className="flex flex-col h-full bg-white">
 
       {/* Messages - ChatGPT Style */}
       <div className="flex-1 overflow-y-auto">
@@ -207,10 +227,11 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      {/* Input - ChatGPT Style */}
-      <div className="flex-shrink-0">
-        <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
+        {/* Input - ChatGPT Style */}
+        <div className="flex-shrink-0">
+          <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
