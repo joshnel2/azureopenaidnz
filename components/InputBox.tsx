@@ -55,27 +55,82 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    console.log('Files selected:', files.length);
     
     // Read file contents
     const filesWithContent = await Promise.all(
       files.map(async (file) => {
-        const content = await readFileContent(file);
-        return { file, content };
+        console.log('Reading file:', file.name, 'Type:', file.type, 'Size:', file.size);
+        try {
+          const content = await readFileContent(file);
+          console.log('File content length:', content.length);
+          return { file, content };
+        } catch (error) {
+          console.error('Error reading file:', file.name, error);
+          return { file, content: `Error reading file: ${file.name}` };
+        }
       })
     );
     
+    console.log('Files with content:', filesWithContent.length);
     setUploadedFiles(prev => [...prev, ...filesWithContent]);
   };
 
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      
       reader.onload = (e) => {
-        const content = e.target?.result as string;
-        resolve(content);
+        const result = e.target?.result;
+        
+        if (file.type === 'application/pdf') {
+          // For PDFs, use dynamic import to avoid SSR issues
+          try {
+            const arrayBuffer = result as ArrayBuffer;
+            
+            // Dynamic import for client-side only
+            const pdfjsLib = await import('pdfjs-dist');
+            
+            // Configure worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+            
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            
+            const maxPages = Math.min(pdf.numPages, 5); // Limit to 5 pages for performance
+            for (let i = 1; i <= maxPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map((item: any) => item.str).join(' ');
+              fullText += `\n--- Page ${i} ---\n${pageText}\n`;
+            }
+            
+            if (pdf.numPages > 5) {
+              fullText += `\n[Note: This PDF has ${pdf.numPages} pages. Only the first 5 pages were processed for analysis.]`;
+            }
+            
+            resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF:\n${fullText}`);
+          } catch (error) {
+            console.error('PDF processing error:', error);
+            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
+          }
+        } else {
+          // For text files, read as text
+          const content = result as string;
+          resolve(content || `[FILE: ${file.name}]\n\nFile uploaded but content could not be read. Please provide general guidance about this type of file.`);
+        }
       };
-      reader.onerror = reject;
-      reader.readAsText(file);
+      
+      reader.onerror = () => {
+        resolve(`[FILE: ${file.name}]\n\nFile uploaded but could not be processed. Please provide general guidance about this type of file.`);
+      };
+      
+      // Read as text for most files, but handle PDFs specially
+      if (file.type === 'application/pdf') {
+        reader.readAsArrayBuffer(file); // We'll handle this in onload
+      } else {
+        reader.readAsText(file);
+      }
     });
   };
 

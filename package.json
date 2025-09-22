@@ -14,6 +14,7 @@
     "dotenv": "^17.2.2",
     "next": "14.2.5",
     "openai": "^4.57.0",
+    "pdfjs-dist": "^5.4.149",
     "postcss": "^8",
     "react": "^18",
     "react-dom": "^18",
