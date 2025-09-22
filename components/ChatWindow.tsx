@@ -142,26 +142,30 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="bg-law-blue text-white p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-            <span className="text-law-blue font-bold text-lg">DNZ</span>
+    <div className="flex flex-col h-[80vh] bg-white">
+      {/* Professional Header */}
+      <div className="bg-gradient-to-r from-law-blue via-law-blue-dark to-indigo-900 text-white px-8 py-6 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-wide">Legal Assistant</h1>
+              <p className="text-blue-100 text-sm font-medium">Professional Legal Guidance & Information</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold">Dorf Nelson & Zauderer</h1>
-            <p className="text-sm opacity-90">Legal Assistant</p>
-          </div>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 text-sm font-medium border border-white/20 backdrop-blur-sm"
+            >
+              New Conversation
+            </button>
+          )}
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearChat}
-            className="px-3 py-1 text-sm bg-law-blue-light hover:bg-law-blue-dark rounded transition-colors duration-200"
-          >
-            Clear Chat
-          </button>
-        )}
       </div>
 
       {/* Messages */}
