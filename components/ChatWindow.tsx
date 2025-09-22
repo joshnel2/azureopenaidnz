@@ -112,10 +112,10 @@ export default function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingMessage]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (aiContent: string, displayContent?: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
-      content,
+      content: displayContent || aiContent, // Use display content for user message bubble
       role: 'user',
       timestamp: new Date(),
     };
@@ -132,10 +132,16 @@ export default function ChatWindow() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: updatedMessages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
+          messages: [
+            ...messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            {
+              role: 'user',
+              content: aiContent // Send the full AI content with file data
+            }
+          ]
         }),
       });
 

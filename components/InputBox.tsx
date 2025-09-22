@@ -3,7 +3,7 @@
 import React, { useState, KeyboardEvent, useRef } from 'react';
 
 interface InputBoxProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (aiMessage: string, displayMessage?: string) => void;
   disabled?: boolean;
 }
 
@@ -19,20 +19,28 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
 
   const handleSubmit = () => {
     if ((message.trim() || uploadedFiles.length > 0) && !disabled) {
-      let finalMessage = message.trim();
+      let userDisplayMessage = message.trim();
+      let aiAnalysisMessage = message.trim();
       
-      // Add file content if files are uploaded
+      // For display: just show file names
       if (uploadedFiles.length > 0) {
-        finalMessage += '\n\n--- UPLOADED FILES ---\n\n';
-        uploadedFiles.forEach((fileWithContent, index) => {
-          finalMessage += `File ${index + 1}: ${fileWithContent.file.name}\n`;
-          finalMessage += `Content:\n${fileWithContent.content}\n\n`;
-        });
-        finalMessage += '--- END FILES ---\n\n';
-        finalMessage += 'Please analyze the uploaded files and provide your legal analysis or advice based on the content above.';
+        const fileNames = uploadedFiles.map(f => f.file.name).join(', ');
+        userDisplayMessage += `\n\n📎 Uploaded files: ${fileNames}`;
       }
       
-      onSendMessage(finalMessage);
+      // For AI: include full file content for analysis
+      if (uploadedFiles.length > 0) {
+        aiAnalysisMessage += '\n\n--- UPLOADED FILES FOR ANALYSIS ---\n\n';
+        uploadedFiles.forEach((fileWithContent, index) => {
+          aiAnalysisMessage += `File ${index + 1}: ${fileWithContent.file.name}\n`;
+          aiAnalysisMessage += `Content:\n${fileWithContent.content}\n\n`;
+        });
+        aiAnalysisMessage += '--- END FILES ---\n\n';
+        aiAnalysisMessage += 'Please analyze the uploaded files and provide your legal analysis or advice based on the content above.';
+      }
+      
+      // Send the analysis message to AI but display the clean version to user
+      onSendMessage(aiAnalysisMessage, userDisplayMessage);
       setMessage('');
       setUploadedFiles([]);
     }

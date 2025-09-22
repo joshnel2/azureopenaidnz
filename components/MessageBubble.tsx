@@ -133,6 +133,18 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
               <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>
             </div>
             
+            {/* File attachment indicator */}
+            {isUser && message.includes('📎 Uploaded files:') && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                  <span className="text-sm text-blue-800 font-medium">Files uploaded and analyzed</span>
+                </div>
+              </div>
+            )}
+            
             {/* Professional Download buttons */}
             {!isUser && isDocument && (
               <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl border border-gray-200">
