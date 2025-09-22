@@ -113,7 +113,7 @@ Please consult with a qualified attorney before using this document.
         });
 
         const buffer = await Packer.toBuffer(doc);
-        blob = new Blob([buffer], { 
+        blob = new Blob([new Uint8Array(buffer)], { 
           type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
         });
       } catch (error) {
