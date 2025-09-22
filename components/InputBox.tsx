@@ -15,19 +15,12 @@ interface FileWithContent {
 export default function InputBox({ onSendMessage, disabled = false }: InputBoxProps) {
   const [message, setMessage] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithContent[]>([]);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
     if ((message.trim() || uploadedFiles.length > 0) && !disabled) {
       let userDisplayMessage = message.trim();
       let aiAnalysisMessage = message.trim();
-      
-      // Add web search indicator if enabled
-      if (webSearchEnabled) {
-        userDisplayMessage += '\n\n🔍 Searching web for current information...';
-        aiAnalysisMessage += ' [WEB_SEARCH_REQUESTED]';
-      }
       
       // For display: just show file names
       if (uploadedFiles.length > 0) {
@@ -50,7 +43,6 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
       onSendMessage(aiAnalysisMessage, userDisplayMessage);
       setMessage('');
       setUploadedFiles([]);
-      setWebSearchEnabled(false); // Reset search toggle after sending
     }
   };
 
@@ -157,28 +149,6 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
               <span className="font-medium">Upload Files</span>
-            </button>
-
-            {/* Web Search Toggle Button */}
-            <button
-              onClick={() => setWebSearchEnabled(!webSearchEnabled)}
-              disabled={disabled}
-              className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-lg transition-all duration-200 disabled:opacity-50 border ${
-                webSearchEnabled 
-                  ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' 
-                  : 'text-gray-600 hover:text-green-600 hover:bg-green-50 border-transparent hover:border-green-200'
-              }`}
-              title="Toggle web search for current legal information"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span className="font-medium">
-                {webSearchEnabled ? 'Web Search ON' : 'Web Search'}
-              </span>
-              {webSearchEnabled && (
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              )}
             </button>
           </div>
 
