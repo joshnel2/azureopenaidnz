@@ -1,11 +1,11 @@
-# Dorf Nelson & Zauderer Legal Assistant
+# Dorf Nelson & Zauderer Confidential Legal Assistant
 
-A professional AI-powered legal chatbot built with Next.js 14+ and Azure OpenAI's o1-mini model. This application provides general legal information and guidance while maintaining professional disclaimers.
+A professional AI-powered confidential legal chatbot built with Next.js 14+ and Azure OpenAI's o4-mini model. This application provides general legal information and guidance while maintaining professional disclaimers.
 
 ## Features
 
 - **Modern Chat Interface**: Clean, professional UI with message bubbles and real-time streaming responses
-- **Azure OpenAI Integration**: Powered by o1-mini model for intelligent legal assistance
+- **Azure OpenAI Integration**: Powered by o4-mini model for intelligent legal assistance
 - **Persistent Chat History**: Session-based chat history stored in localStorage
 - **Professional Branding**: Dorf Nelson & Zauderer law firm branding with dark blue color scheme
 - **Responsive Design**: Works seamlessly on desktop and mobile devices

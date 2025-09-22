@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Dorf Nelson & Zauderer Legal Assistant',
-  description: 'AI-powered legal assistant for general legal information and guidance.',
+  title: 'Dorf Nelson & Zauderer Confidential Legal Assistant',
+  description: 'AI-powered confidential legal assistant for general legal information and guidance.',
 }
 
 export default function RootLayout({
