@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
               content: msg.content
             })),
             max_completion_tokens: 2000,
-            temperature: 0.7,
             stream: true
           });
           
