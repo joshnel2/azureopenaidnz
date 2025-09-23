@@ -1,4 +1,4 @@
-# Dorf Nelson & Zauderer Confidential Legal Assistant :
+# Dorf Nelson & Zauderer Confidential Legal Assistant :,
 
 A professional AI-powered confidential legal assistant built with Next.js 14+ and Azure OpenAI's o4-mini model. This internal application provides comprehensive legal research, document analysis, and template generation for law firm staff.
 
