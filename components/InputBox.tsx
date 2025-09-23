@@ -100,26 +100,34 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             // Dynamic import for client-side only
             const pdfjsLib = await import('pdfjs-dist');
             
-            // Configure worker with multiple fallback options
+            // Configure worker with local fallback and multiple CDN options
             if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-              // Try multiple worker sources for better compatibility
-              const workerSources = [
-                `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`,
-                `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`,
-                `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`
-              ];
-              
-              // Set the first worker source
-              pdfjsLib.GlobalWorkerOptions.workerSrc = workerSources[0];
+              // Use local worker first (most reliable for production)
+              pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+              console.log('Configured PDF.js worker: local file');
             }
             
             console.log('PDF.js version:', pdfjsLib.version);
             console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
             
-            const pdf = await pdfjsLib.getDocument({ 
-              data: arrayBuffer,
-              verbosity: 0 // Reduce console output
-            }).promise;
+            // Try to load PDF with local worker first
+            let pdf;
+            try {
+              pdf = await pdfjsLib.getDocument({ 
+                data: arrayBuffer,
+                verbosity: 0 // Reduce console output
+              }).promise;
+            } catch (workerError) {
+              console.warn('Local worker failed, trying CDN fallback:', workerError);
+              
+              // Fallback to CDN worker
+              pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+              
+              pdf = await pdfjsLib.getDocument({ 
+                data: arrayBuffer,
+                verbosity: 0
+              }).promise;
+            }
             let fullText = '';
             
             console.log(`Processing PDF: ${pdf.numPages} total pages - processing ALL pages`);
