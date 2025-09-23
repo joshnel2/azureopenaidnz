@@ -88,13 +88,34 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           try {
             const arrayBuffer = result as ArrayBuffer;
             
+            // Check if we're in a browser environment
+            if (typeof window === 'undefined') {
+              throw new Error('PDF processing requires browser environment');
+            }
+            
             // Dynamic import for client-side only
             const pdfjsLib = await import('pdfjs-dist');
             
-            // Configure worker
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+            // Configure worker with multiple fallback options
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+              // Try multiple worker sources for better compatibility
+              const workerSources = [
+                `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`,
+                `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`,
+                `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`
+              ];
+              
+              // Set the first worker source
+              pdfjsLib.GlobalWorkerOptions.workerSrc = workerSources[0];
+            }
             
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            console.log('PDF.js version:', pdfjsLib.version);
+            console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+            
+            const pdf = await pdfjsLib.getDocument({ 
+              data: arrayBuffer,
+              verbosity: 0 // Reduce console output
+            }).promise;
             let fullText = '';
             
             console.log(`Processing PDF: ${pdf.numPages} total pages - processing ALL pages`);
@@ -120,9 +141,11 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             }
             
             console.log(`PDF processing complete. Extracted ${fullText.length} characters from ${pdf.numPages} pages.`);
+            console.log('Sample extracted text:', fullText.substring(0, 200) + '...');
             
             if (fullText.trim().length < 100) {
-              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.`);
+              console.warn('PDF has very little text content - might be image-based');
+              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.\n\nExtracted text preview: "${fullText.trim().substring(0, 200)}..."`);
             } else {
               resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
             }
@@ -130,7 +153,18 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             console.error('PDF processing error:', error);
             console.error('Error details:', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
+            
+            // Provide more specific error information
+            let errorDetails = '';
+            if (errorMessage.includes('worker')) {
+              errorDetails = ' This appears to be a PDF.js worker loading issue.';
+            } else if (errorMessage.includes('Invalid PDF')) {
+              errorDetails = ' The PDF file appears to be corrupted or invalid.';
+            } else if (errorMessage.includes('password')) {
+              errorDetails = ' The PDF appears to be password-protected.';
+            }
+            
+            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}.${errorDetails}\n\nThe AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content directly.`);
           }
         } else {
           // For text files, read as text
