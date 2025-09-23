@@ -97,16 +97,21 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let fullText = '';
             
-            const maxPages = Math.min(pdf.numPages, 5); // Limit to 5 pages for performance
+            const maxPages = Math.min(pdf.numPages, 25); // Process up to 25 pages
+            console.log(`Processing PDF: ${pdf.numPages} total pages, processing ${maxPages} pages`);
+            
             for (let i = 1; i <= maxPages; i++) {
+              console.log(`Processing page ${i} of ${maxPages}`);
               const page = await pdf.getPage(i);
               const textContent = await page.getTextContent();
               const pageText = textContent.items.map((item: any) => item.str).join(' ');
               fullText += `\n--- Page ${i} ---\n${pageText}\n`;
             }
             
-            if (pdf.numPages > 5) {
-              fullText += `\n[Note: This PDF has ${pdf.numPages} pages. Only the first 5 pages were processed for analysis.]`;
+            console.log(`PDF processing complete. Extracted ${fullText.length} characters.`);
+            
+            if (pdf.numPages > 25) {
+              fullText += `\n[Note: This PDF has ${pdf.numPages} pages. Only the first 25 pages were processed for analysis.]`;
             }
             
             resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF:\n${fullText}`);
