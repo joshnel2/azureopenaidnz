@@ -22,13 +22,17 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
       let userDisplayMessage = message.trim();
       let aiAnalysisMessage = message.trim();
       
-      // For display: just show file names
+      // For display: just show file names with clean formatting
       if (uploadedFiles.length > 0) {
         const fileNames = uploadedFiles.map(f => f.file.name).join(', ');
-        userDisplayMessage += `\n\n📎 Uploaded files: ${fileNames}`;
+        if (userDisplayMessage) {
+          userDisplayMessage += `\n\n📎 Uploaded files: ${fileNames}`;
+        } else {
+          userDisplayMessage = `📎 Uploaded files: ${fileNames}`;
+        }
       }
       
-      // For AI: include full file content for analysis
+      // For AI: include full file content for analysis (invisible to user)
       if (uploadedFiles.length > 0) {
         aiAnalysisMessage += '\n\n--- UPLOADED FILES FOR ANALYSIS ---\n\n';
         uploadedFiles.forEach((fileWithContent, index) => {
@@ -166,6 +170,37 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             
             resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}.${errorDetails}\n\nThe AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content directly.`);
           }
+        } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                   file.type === 'application/msword' ||
+                   file.name.toLowerCase().endsWith('.docx') ||
+                   file.name.toLowerCase().endsWith('.doc')) {
+          // For Word documents, use mammoth to extract text
+          try {
+            const arrayBuffer = result as ArrayBuffer;
+            
+            // Check if we're in a browser environment
+            if (typeof window === 'undefined') {
+              throw new Error('Word document processing requires browser environment');
+            }
+            
+            // Dynamic import for client-side only
+            const mammoth = await import('mammoth');
+            
+            console.log('Processing Word document:', file.name);
+            const mammothResult = await mammoth.extractRawText({ arrayBuffer });
+            
+            if (mammothResult.value && mammothResult.value.trim().length > 0) {
+              console.log(`Word document processing complete. Extracted ${mammothResult.value.length} characters.`);
+              resolve(`[WORD DOCUMENT: ${file.name}]\n\nExtracted content from Word document:\n${mammothResult.value}`);
+            } else {
+              console.warn('Word document has no readable text content');
+              resolve(`[WORD DOCUMENT: ${file.name}]\n\nThis Word document appears to contain no readable text or may be corrupted. Please copy and paste the content directly for analysis.`);
+            }
+          } catch (error) {
+            console.error('Word document processing error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            resolve(`[WORD DOCUMENT: ${file.name}]\n\nWord document uploaded but text extraction failed. Error: ${errorMessage}. Please copy and paste the content directly for analysis.`);
+          }
         } else {
           // For text files, read as text
           const content = result as string;
@@ -177,8 +212,12 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         resolve(`[FILE: ${file.name}]\n\nFile uploaded but could not be processed. Please provide general guidance about this type of file.`);
       };
       
-      // Read as text for most files, but handle PDFs specially
-      if (file.type === 'application/pdf') {
+      // Read as ArrayBuffer for PDFs and Word docs, text for others
+      if (file.type === 'application/pdf' || 
+          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          file.type === 'application/msword' ||
+          file.name.toLowerCase().endsWith('.docx') ||
+          file.name.toLowerCase().endsWith('.doc')) {
         reader.readAsArrayBuffer(file); // We'll handle this in onload
       } else {
         reader.readAsText(file);
