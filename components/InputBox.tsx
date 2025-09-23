@@ -114,7 +114,8 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
                 }
               } catch (pageError) {
                 console.error(`Error processing page ${i}:`, pageError);
-                fullText += `\n--- Page ${i} ---\n[Error reading page: ${pageError.message}]\n`;
+                const errorMessage = pageError instanceof Error ? pageError.message : 'Unknown error';
+                fullText += `\n--- Page ${i} ---\n[Error reading page: ${errorMessage}]\n`;
               }
             }
             
@@ -128,7 +129,8 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           } catch (error) {
             console.error('PDF processing error:', error);
             console.error('Error details:', error);
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${error.message || 'Unknown error'}. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
           }
         } else {
           // For text files, read as text
