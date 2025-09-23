@@ -102,18 +102,33 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             // Process ALL pages - no limit
             for (let i = 1; i <= pdf.numPages; i++) {
               console.log(`Processing page ${i} of ${pdf.numPages}`);
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-              const pageText = textContent.items.map((item: any) => item.str).join(' ');
-              fullText += `\n--- Page ${i} ---\n${pageText}\n`;
+              try {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
+                
+                if (pageText) {
+                  fullText += `\n--- Page ${i} ---\n${pageText}\n`;
+                } else {
+                  fullText += `\n--- Page ${i} ---\n[No readable text found on this page]\n`;
+                }
+              } catch (pageError) {
+                console.error(`Error processing page ${i}:`, pageError);
+                fullText += `\n--- Page ${i} ---\n[Error reading page: ${pageError.message}]\n`;
+              }
             }
             
             console.log(`PDF processing complete. Extracted ${fullText.length} characters from ${pdf.numPages} pages.`);
             
-            resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF:\n${fullText}`);
+            if (fullText.trim().length < 100) {
+              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.`);
+            } else {
+              resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+            }
           } catch (error) {
             console.error('PDF processing error:', error);
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
+            console.error('Error details:', error);
+            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${error.message || 'Unknown error'}. The AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content.`);
           }
         } else {
           // For text files, read as text
