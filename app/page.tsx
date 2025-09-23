@@ -12,7 +12,7 @@ export default function Home() {
                 <span className="text-white font-bold text-sm">DNZ</span>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Dorf Nelson & Zauderer Confidential Legal Assistant</h1>
+                <h1 className="text-lg font-semibold text-gray-900">Dorf Nelson & Zauderer Confidential Assistant</h1>
               </div>
             </div>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
