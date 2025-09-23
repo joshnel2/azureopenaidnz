@@ -186,8 +186,9 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
 
   const handleDownload = async (format: 'txt' | 'docx' | 'csv') => {
     // Generate a descriptive filename based on content
-    let docType = 'legal_document';
+    let docType = 'ai_response';
     
+    // Check for legal document types
     if (message.includes('CONTRACT')) docType = 'contract';
     else if (message.includes('AGREEMENT')) docType = 'agreement';
     else if (message.includes('TEMPLATE')) docType = 'template';
@@ -196,6 +197,18 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
     else if (message.includes('LEASE')) docType = 'lease_agreement';
     else if (message.includes('SERVICE')) docType = 'service_agreement';
     else if (message.includes('TERMS')) docType = 'terms_conditions';
+    else if (message.includes('LEGAL')) docType = 'legal_analysis';
+    else if (message.includes('RESEARCH')) docType = 'legal_research';
+    else if (message.includes('MEMO')) docType = 'legal_memo';
+    else if (message.includes('BRIEF')) docType = 'legal_brief';
+    else if (message.includes('LETTER')) docType = 'legal_letter';
+    else if (message.includes('OPINION')) docType = 'legal_opinion';
+    else if (message.includes('ADVICE')) docType = 'legal_advice';
+    else if (message.includes('GUIDANCE')) docType = 'legal_guidance';
+    else if (message.includes('ANALYSIS')) docType = 'legal_analysis';
+    else if (message.includes('REVIEW')) docType = 'legal_review';
+    else if (message.includes('SUMMARY')) docType = 'legal_summary';
+    else if (message.includes('REPORT')) docType = 'legal_report';
     
     const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     const filename = `${docType}_${timestamp}.${format}`;
@@ -261,8 +274,8 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
               </div>
             )}
             
-            {/* Professional Download buttons */}
-            {!isUser && isDocument && (
+            {/* Professional Download buttons - Always show for AI responses */}
+            {!isUser && (
               <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl border border-gray-200">
                 <div className="flex items-center mb-3">
                   <svg className="w-4 h-4 text-law-blue mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
