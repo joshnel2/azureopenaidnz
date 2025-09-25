@@ -57,6 +57,14 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
     }
   };
 
+  // Firefox-compatible key handler
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     console.log('Files selected:', files.length);
@@ -274,18 +282,20 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         <div className="p-4">
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              // Firefox-compatible auto-resize
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+            }}
             onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Ask a legal question, request document analysis, or get help with legal matters..."
             disabled={disabled}
             rows={1}
             className="w-full px-0 py-2 border-none resize-none focus:outline-none text-gray-800 placeholder-gray-500"
             style={{ minHeight: '24px', maxHeight: '120px' }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-            }}
           />
         </div>
 
@@ -294,7 +304,12 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           <div className="flex items-center space-x-3">
             {/* File Upload Button */}
             <button
-              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
               disabled={disabled}
               className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
               title="Upload documents for analysis"
@@ -308,7 +323,12 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
 
           {/* Send Button */}
           <button
-            onClick={handleSubmit}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit();
+            }}
             disabled={disabled || (!message.trim() && uploadedFiles.length === 0)}
             className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
           >

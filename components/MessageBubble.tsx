@@ -126,19 +126,76 @@ Please consult with a qualified attorney before using this document.
       blob = new Blob([cleanContent], { type: 'text/plain' });
   }
   
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  
-  // Firefox compatibility: small delay and proper cleanup
-  setTimeout(() => {
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 0);
+  // Enhanced cross-browser download with multiple fallback methods
+  try {
+    // Method 1: Modern blob download (works on most browsers)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    a.rel = 'noopener noreferrer';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    
+    // Firefox and Safari compatibility: small delay and proper cleanup
+    setTimeout(() => {
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }, 0);
+    
+  } catch (error) {
+    console.warn('Primary download method failed, trying fallback:', error);
+    
+    // Method 2: Fallback for older browsers or restrictive environments
+    try {
+      const reader = new FileReader();
+      reader.onload = function() {
+        const dataUrl = reader.result as string;
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+        }, 100);
+      };
+      reader.readAsDataURL(blob);
+      
+    } catch (fallbackError) {
+      console.error('All download methods failed:', fallbackError);
+      
+      // Method 3: Final fallback - open in new window with download suggestion
+      const reader = new FileReader();
+      reader.onload = function() {
+        const dataUrl = reader.result as string;
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head><title>Download ${filename}</title></head>
+              <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
+                <h2>Download Ready</h2>
+                <p>Right-click the link below and select "Save As" to download your file:</p>
+                <a href="${dataUrl}" download="${filename}" style="font-size: 18px; color: #007bff;">${filename}</a>
+                <br><br>
+                <p style="color: #666; font-size: 14px;">If the download doesn't start automatically, use the right-click method above.</p>
+              </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } else {
+          alert(`Download blocked by browser. Please allow pop-ups and try again, or contact support for the file: ${filename}`);
+        }
+      };
+      reader.readAsDataURL(blob);
+    }
+  }
 };
 
 export default function MessageBubble({ message, isUser, timestamp }: MessageBubbleProps) {
