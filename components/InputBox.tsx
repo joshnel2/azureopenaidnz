@@ -353,7 +353,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         {/* Internal Use Notice */}
         <div className="mt-3 text-center">
           <p className="text-xs text-gray-500">
-            Internal Legal Assistant • For Dorf Nelson & Zauderer staff use only • Confidential work product
+            Internal Assistant • For Dorf Nelson & Zauderer staff use only • Confidential work product
           </p>
         </div>
       </div>
