@@ -130,10 +130,15 @@ Please consult with a qualified attorney before using this document.
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.style.display = 'none';
   document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  
+  // Firefox compatibility: small delay and proper cleanup
+  setTimeout(() => {
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
 };
 
 export default function MessageBubble({ message, isUser, timestamp }: MessageBubbleProps) {
