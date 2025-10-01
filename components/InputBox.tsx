@@ -217,6 +217,9 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             resolve(`[WORD DOCUMENT: ${file.name}]\n\nWord document uploaded but text extraction failed. Error: ${errorMessage}. Please copy and paste the content directly for analysis.`);
           }
+        } else if (file.type.startsWith('image/')) {
+          // For image files, provide guidance for manual text extraction
+          resolve(`[IMAGE FILE: ${file.name}]\n\nImage uploaded successfully! This appears to be an image file that may contain text.\n\nTo help analyze this document:\n1. Please describe what you see in the image\n2. Type any text that appears in the image\n3. Let me know what kind of legal document this is\n\nI can provide legal analysis based on your description of the image content.`);
         } else {
           // For text files, read as text
           const content = result as string;
@@ -312,7 +315,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
               }}
               disabled={disabled}
               className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
-              title="Upload documents for analysis"
+              title="Upload documents and images for analysis"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -345,7 +348,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,.doc,.docx,.txt,.rtf"
+        accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
         onChange={handleFileUpload}
         className="hidden"
       />
