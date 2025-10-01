@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "node app.js",
+    "lint": "next lint",
+    "postinstall": "next build"
   },
   "dependencies": {
     "autoprefixer": "^10.0.1",
