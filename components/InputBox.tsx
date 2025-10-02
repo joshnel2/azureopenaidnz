@@ -108,26 +108,14 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             // Dynamic import for client-side only
             const pdfjsLib = await import('pdfjs-dist');
             
-            // Configure worker with local fallback and multiple CDN options
-            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-              // Use local worker first (most reliable for production)
-              pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-              console.log('Configured PDF.js worker: local file');
-            }
-            
+            // Always use CDN worker (most reliable)
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
             console.log('PDF.js version:', pdfjsLib.version);
             console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
             
             // Load PDF document
             console.log('Loading PDF document...');
-            const loadingTask = pdfjsLib.getDocument({ 
-              data: arrayBuffer,
-              verbosity: 0,
-              isEvalSupported: false,
-              useSystemFonts: true
-            });
-            
-            const pdf = await loadingTask.promise;
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
             console.log('PDF loaded successfully');
             let fullText = '';
             
