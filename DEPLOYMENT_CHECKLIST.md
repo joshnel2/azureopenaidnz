@@ -38,6 +38,11 @@
 2. **next.config.js**
    - Added `output: 'standalone'` for proper Azure deployment
 
+3. **lib/openai.ts**
+   - Updated system prompt to inform AI that PDF extraction is reliable
+   - AI now confidently analyzes uploaded documents without unnecessary apologies
+   - Prevents AI from expressing doubts about file content quality
+
 ### New Files:
 1. **PDF_EXTRACTION_FIX_SUMMARY.md** - Detailed technical documentation
 2. **DEPLOYMENT_CHECKLIST.md** - This checklist

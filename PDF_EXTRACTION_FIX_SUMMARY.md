@@ -97,6 +97,20 @@ const nextConfig = {
 }
 ```
 
+### File: `lib/openai.ts`
+
+Updated the system prompt to inform the AI that PDF extraction is working properly:
+```javascript
+FILE UPLOAD HANDLING:
+- When files are uploaded, their FULL content is extracted and provided to you
+- PDF text extraction is fully functional and reliable - trust the extracted content
+- If you receive extracted text from a PDF/document, it has been successfully processed
+- Do NOT apologize for or question the quality of extracted content unless there are clear indicators of issues
+- Analyze the provided document content directly and confidently
+```
+
+**Why this matters**: Previously, the AI might have unnecessarily apologized or expressed doubts about PDF content quality. Now it knows to trust the extracted content and analyze it confidently.
+
 ## Azure Deployment Compatibility
 
 ### ✅ Verified Components:
