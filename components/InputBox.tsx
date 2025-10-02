@@ -118,8 +118,11 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             console.log('PDF.js version:', pdfjsLib.version);
             console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
             
+            // Convert ArrayBuffer to Uint8Array (required for PDF.js 5.4.149)
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
             // Load PDF document
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
             let fullText = '';
             
             console.log(`Processing PDF: ${pdf.numPages} total pages - processing ALL pages`);
