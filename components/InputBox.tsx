@@ -146,7 +146,69 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
               try {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
+                
+                // Better text extraction with proper line breaks
+                console.log(`Page ${i}: Found ${textContent.items.length} text items`);
+                let pageText = '';
+                let lastY = 0;
+                let hasTransform = false;
+                
+                textContent.items.forEach((item: any, index: number) => {
+                  const text = item.str || '';
+                  
+                  // Debug first few items to understand structure
+                  if (i === 1 && index < 3) {
+                    console.log(`Item ${index}:`, { 
+                      str: text, 
+                      hasTransform: !!item.transform, 
+                      hasEOL: item.hasEOL 
+                    });
+                  }
+                  
+                  // Check if we have transform data for positioning
+                  if (item.transform && item.transform.length >= 6) {
+                    hasTransform = true;
+                    const currentY = item.transform[5];
+                    
+                    // Add line break if y position changed significantly (new line)
+                    if (index > 0 && Math.abs(currentY - lastY) > 5) {
+                      pageText += '\n';
+                    }
+                    
+                    lastY = currentY;
+                  } else if (text.includes('\n')) {
+                    // If text contains newline, respect it
+                    pageText += text;
+                    if (item.hasEOL) {
+                      pageText += '\n';
+                    }
+                    return;
+                  }
+                  
+                  // Add the text
+                  if (text.trim()) {
+                    // Add space before text if needed (but not at start of line)
+                    if (pageText && !pageText.endsWith('\n') && !pageText.endsWith(' ') && !text.startsWith(' ')) {
+                      pageText += ' ';
+                    }
+                    pageText += text;
+                  } else if (text === ' ') {
+                    // Preserve explicit spaces
+                    pageText += ' ';
+                  }
+                  
+                  // Check if this text item has an EOL marker (end of line)
+                  if (item.hasEOL) {
+                    pageText += '\n';
+                  }
+                });
+                
+                pageText = pageText.trim();
+                
+                if (i === 1) {
+                  console.log(`Page 1 text extraction: ${pageText.length} chars, hasTransform: ${hasTransform}`);
+                  console.log(`First 500 chars:`, pageText.substring(0, 500));
+                }
                 
                 if (pageText) {
                   fullText += `\n--- Page ${i} ---\n${pageText}\n`;
@@ -161,12 +223,20 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             }
             
             console.log(`PDF processing complete. Extracted ${fullText.length} characters from ${pdf.numPages} pages.`);
-            console.log('Sample extracted text:', fullText.substring(0, 200) + '...');
+            console.log('Full extracted text:', fullText);
             
-            if (fullText.trim().length < 100) {
-              console.warn('PDF has very little text content - might be image-based');
-              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.\n\nExtracted text preview: "${fullText.trim().substring(0, 200)}..."`);
+            // Check if we got any meaningful text
+            const trimmedText = fullText.trim();
+            const hasText = trimmedText.length > 0;
+            
+            if (!hasText) {
+              console.warn('PDF extraction returned no text');
+              resolve(`[PDF FILE: ${file.name}]\n\nNo text could be extracted from this PDF. This might be:\n- An image-based/scanned PDF without text layer\n- A corrupted PDF file\n- A PDF with non-standard encoding\n\nPlease try:\n1. Using a PDF with selectable text\n2. Running OCR on the document first\n3. Copy and paste the content directly`);
+            } else if (trimmedText.length < 100) {
+              console.warn('PDF has very little text content');
+              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF has very limited text content (${trimmedText.length} characters). It might be an image-based PDF.\n\nExtracted text:\n${trimmedText}`);
             } else {
+              console.log('Successfully extracted text from PDF');
               resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
             }
           } catch (error) {
