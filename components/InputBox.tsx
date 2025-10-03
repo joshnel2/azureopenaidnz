@@ -118,11 +118,14 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             console.log('PDF.js version:', pdfjsLib.version);
             console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
             
+            // Convert ArrayBuffer to Uint8Array for proper PDF.js handling
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
             // Try to load PDF with local worker first
             let pdf;
             try {
               pdf = await pdfjsLib.getDocument({ 
-                data: arrayBuffer,
+                data: uint8Array,
                 verbosity: 0 // Reduce console output
               }).promise;
             } catch (workerError) {
