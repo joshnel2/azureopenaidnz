@@ -8,6 +8,7 @@ import ChatHistory from './ChatHistory';
 interface Message {
   id: string;
   content: string;
+  displayContent?: string; // For user display (short version)
   role: 'user' | 'assistant';
   timestamp: Date;
 }
@@ -92,7 +93,7 @@ export default function ChatWindow() {
         // Fallback: use first user message but make it more descriptive
         const firstUserMessage = messages.find(m => m.role === 'user');
         if (firstUserMessage) {
-          const content = firstUserMessage.content.replace(/📎.*$/m, '').trim(); // Remove file indicators
+          const content = (firstUserMessage.displayContent || firstUserMessage.content).replace(/📎.*$/m, '').trim(); // Remove file indicators
           title = content.slice(0, 45);
           if (content.length > 45) {
             title += '...';
@@ -103,7 +104,7 @@ export default function ChatWindow() {
       // Single message - use first user message
       const firstUserMessage = messages.find(m => m.role === 'user');
       if (firstUserMessage) {
-        const content = firstUserMessage.content.replace(/📎.*$/m, '').trim();
+        const content = (firstUserMessage.displayContent || firstUserMessage.content).replace(/📎.*$/m, '').trim();
         title = content.slice(0, 45);
         if (content.length > 45) {
           title += '...';
@@ -171,7 +172,8 @@ export default function ChatWindow() {
   const handleSendMessage = async (aiContent: string, displayContent?: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: displayContent || aiContent, // Use display content for user message bubble
+      content: aiContent, // Store full content with PDF text for AI
+      displayContent: displayContent, // Store short version for display
       role: 'user',
       timestamp: new Date(),
     };
@@ -350,7 +352,7 @@ export default function ChatWindow() {
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}
-                message={message.content}
+                message={message.displayContent || message.content}
                 isUser={message.role === 'user'}
                 timestamp={message.timestamp}
               />
