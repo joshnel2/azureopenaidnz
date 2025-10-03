@@ -98,7 +98,19 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         if (file.type === 'application/pdf') {
           // For PDFs, use dynamic import to avoid SSR issues
           try {
+            // INPUT VALIDATION: Ensure we have a valid ArrayBuffer
+            if (!result || !(result instanceof ArrayBuffer)) {
+              throw new Error('PDF file did not load as ArrayBuffer - file may be corrupted');
+            }
+            
             const arrayBuffer = result as ArrayBuffer;
+            
+            // Validate ArrayBuffer is not empty
+            if (arrayBuffer.byteLength === 0) {
+              throw new Error('PDF file is empty (0 bytes)');
+            }
+            
+            console.log(`PDF file size: ${arrayBuffer.byteLength} bytes`);
             
             // Check if we're in a browser environment
             if (typeof window === 'undefined') {
@@ -118,11 +130,65 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             console.log('PDF.js version:', pdfjsLib.version);
             console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
             
-            // Convert ArrayBuffer to Uint8Array (required for PDF.js 5.4.149)
+            // PROPER BUFFER HANDLING: Convert ArrayBuffer to Uint8Array
+            // This ensures we pass the correct data type to PDF.js
             const uint8Array = new Uint8Array(arrayBuffer);
             
-            // Load PDF document
-            const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+            // Validate the Uint8Array was created successfully
+            if (!uint8Array || uint8Array.length === 0) {
+              throw new Error('Failed to convert PDF to Uint8Array');
+            }
+            
+            // Check PDF header signature (should start with %PDF-)
+            const headerBytes = uint8Array.slice(0, 5);
+            const headerString = String.fromCharCode.apply(null, Array.from(headerBytes));
+            if (!headerString.startsWith('%PDF')) {
+              console.warn('File does not appear to be a valid PDF (missing %PDF header)');
+              throw new Error('File does not appear to be a valid PDF format');
+            }
+            
+            console.log('PDF header validated:', headerString);
+            
+            // ROBUST ERROR HANDLING: Wrap getDocument in try-catch
+            let loadingTask;
+            try {
+              // Pass data as Uint8Array with proper configuration
+              loadingTask = pdfjsLib.getDocument({
+                data: uint8Array,
+                // Add configuration to handle edge cases
+                useSystemFonts: true,
+                verbosity: 0, // Reduce console noise
+                disableFontFace: false,
+                // Handle password-protected PDFs gracefully
+                password: ''
+              });
+            } catch (loadError) {
+              console.error('Error creating PDF loading task:', loadError);
+              throw new Error(`Failed to initialize PDF parser: ${loadError instanceof Error ? loadError.message : 'Unknown error'}`);
+            }
+            
+            // Validate loadingTask is a proper object
+            if (typeof loadingTask !== 'object' || loadingTask === null) {
+              throw new Error('PDF loader returned invalid object - library may be misconfigured');
+            }
+            
+            // Load PDF document with timeout
+            const pdf = await Promise.race([
+              loadingTask.promise,
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('PDF loading timeout (30s)')), 30000)
+              )
+            ]) as any;
+            
+            // Validate PDF object
+            if (typeof pdf !== 'object' || pdf === null) {
+              throw new Error('PDF document loaded but returned invalid object');
+            }
+            
+            if (!pdf.numPages || pdf.numPages < 1) {
+              throw new Error('PDF has no pages or invalid page count');
+            }
+            
             let fullText = '';
             
             console.log(`Processing PDF: ${pdf.numPages} total pages - processing ALL pages`);
@@ -132,13 +198,36 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
               console.log(`Processing page ${i} of ${pdf.numPages}`);
               try {
                 const page = await pdf.getPage(i);
+                
+                // Validate page object
+                if (typeof page !== 'object' || page === null) {
+                  throw new Error(`Page ${i} returned invalid object`);
+                }
+                
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
+                
+                // Validate textContent object
+                if (typeof textContent !== 'object' || textContent === null || !Array.isArray(textContent.items)) {
+                  console.warn(`Page ${i} has invalid text content structure`);
+                  fullText += `\n--- Page ${i} ---\n[Unable to extract text - invalid content structure]\n`;
+                  continue;
+                }
+                
+                const pageText = textContent.items
+                  .map((item: any) => {
+                    // Defensive check: ensure item has str property
+                    if (item && typeof item === 'object' && typeof item.str === 'string') {
+                      return item.str;
+                    }
+                    return '';
+                  })
+                  .join(' ')
+                  .trim();
                 
                 if (pageText) {
                   fullText += `\n--- Page ${i} ---\n${pageText}\n`;
                 } else {
-                  fullText += `\n--- Page ${i} ---\n[No readable text found on this page]\n`;
+                  fullText += `\n--- Page ${i} ---\n[No readable text found on this page - may be image-based]\n`;
                 }
               } catch (pageError) {
                 console.error(`Error processing page ${i}:`, pageError);
@@ -150,28 +239,40 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             console.log(`PDF processing complete. Extracted ${fullText.length} characters from ${pdf.numPages} pages.`);
             console.log('Sample extracted text:', fullText.substring(0, 200) + '...');
             
+            // FALLBACK HANDLING: Provide helpful guidance based on extraction results
             if (fullText.trim().length < 100) {
-              console.warn('PDF has very little text content - might be image-based');
-              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.\n\nExtracted text preview: "${fullText.trim().substring(0, 200)}..."`);
+              console.warn('PDF has very little text content - might be image-based or scanned');
+              resolve(`[PDF FILE: ${file.name}]\n\n⚠️ This PDF appears to contain mostly images or has very little readable text.\n\nPossible reasons:\n• Scanned document (requires OCR)\n• Image-based PDF without text layer\n• Encrypted or protected content\n• Corrupted text encoding\n\nWorkarounds:\n1. Open the PDF in Adobe Acrobat and export as Word or plain text\n2. Use OCR software (Adobe Acrobat, ABBYY FineReader) if it's a scanned document\n3. Copy and paste the text content directly into the chat\n4. Save the PDF from its source application to ensure proper text encoding\n\nExtracted text preview: "${fullText.trim().substring(0, 200) || '[No text found]'}"`);
             } else {
-              resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+              resolve(`[PDF FILE: ${file.name}]\n\nSuccessfully extracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
             }
           } catch (error) {
             console.error('PDF processing error:', error);
-            console.error('Error details:', error);
+            console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             
-            // Provide more specific error information
+            // DETAILED ERROR REPORTING: Provide specific guidance based on error type
             let errorDetails = '';
-            if (errorMessage.includes('worker')) {
+            let suggestions = '';
+            
+            if (errorMessage.toLowerCase().includes('worker')) {
               errorDetails = ' This appears to be a PDF.js worker loading issue.';
-            } else if (errorMessage.includes('Invalid PDF')) {
-              errorDetails = ' The PDF file appears to be corrupted or invalid.';
-            } else if (errorMessage.includes('password')) {
-              errorDetails = ' The PDF appears to be password-protected.';
+              suggestions = '\n\nTry refreshing the page or clearing your browser cache.';
+            } else if (errorMessage.toLowerCase().includes('invalid pdf') || errorMessage.toLowerCase().includes('pdf header')) {
+              errorDetails = ' The file does not appear to be a valid PDF format.';
+              suggestions = '\n\nPlease verify:\n• The file is actually a PDF (not renamed from another format)\n• The file is not corrupted\n• The file was properly downloaded/transferred';
+            } else if (errorMessage.toLowerCase().includes('password') || errorMessage.toLowerCase().includes('encrypted')) {
+              errorDetails = ' The PDF appears to be password-protected or encrypted.';
+              suggestions = '\n\nPlease:\n• Remove password protection in Adobe Acrobat or another PDF editor\n• Or copy and paste the text content directly';
+            } else if (errorMessage.toLowerCase().includes('timeout')) {
+              errorDetails = ' The PDF took too long to process (may be too large or complex).';
+              suggestions = '\n\nTry:\n• Using a smaller or simpler PDF\n• Splitting the PDF into smaller sections\n• Copying and pasting the text directly';
+            } else if (errorMessage.toLowerCase().includes('object') || errorMessage.toLowerCase().includes('defineproperty')) {
+              errorDetails = ' The PDF has an incompatible internal structure that our parser cannot handle.';
+              suggestions = '\n\nRecommended solutions:\n1. Open the PDF in Adobe Acrobat and export as Word (.docx)\n2. Open the PDF and use "Save As" to create a new copy\n3. Copy the text and paste it directly into the chat\n4. Use an online PDF-to-text converter';
             }
             
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}.${errorDetails}\n\nThe AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content directly.`);
+            resolve(`[PDF FILE: ${file.name}]\n\n❌ PDF text extraction failed\n\nError: ${errorMessage}${errorDetails}${suggestions}\n\n📋 Alternative options:\n• Upload the document as Word (.docx) format if possible\n• Copy and paste the PDF text directly into the chat\n• I can still provide general guidance about PDF document analysis\n\nNote: Word documents (.docx) work more reliably because they use a structured XML format, while PDFs are designed for visual layout and can have complex encoding, embedded fonts, or image-based content that makes text extraction difficult.`);
           }
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.type === 'application/msword' ||
