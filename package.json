@@ -16,7 +16,7 @@
     "mammoth": "^1.11.0",
     "next": "14.2.5",
     "openai": "^4.57.0",
-    "pdfjs-dist": "^5.4.149",
+    "pdfjs-dist": "3.11.174",
     "postcss": "^8",
     "react": "^18",
     "react-dom": "^18",
