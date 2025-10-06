@@ -46,10 +46,6 @@ export function createOpenAIClient() {
   const apiKey = process.env.AZURE_OPENAI_API_KEY;
   const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
-  if (!endpoint || !apiKey || !deploymentName) {
-    throw new Error('Azure OpenAI credentials not configured');
-  }
-
   const baseURL = `${endpoint}/openai/deployments/${deploymentName}`;
 
   return {

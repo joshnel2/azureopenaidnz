@@ -255,17 +255,6 @@ export default function ChatWindow() {
         // Save chat session to history
         saveChatSession(finalMessages);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Sorry, something went wrong. Please try again.',
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-      const errorMessages = [...updatedMessages, errorMessage];
-      setMessages(errorMessages);
-      saveChatSession(errorMessages);
     } finally {
       setIsLoading(false);
       setStreamingMessage('');
