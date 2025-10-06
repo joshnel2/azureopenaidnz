@@ -104,8 +104,10 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
             
+            console.log('Starting PDF extraction for:', file.name);
             const uint8Array = new Uint8Array(arrayBuffer);
             const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise;
+            console.log('PDF loaded, pages:', pdf.numPages);
             
             let fullText = '';
             
@@ -119,12 +121,15 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
               }
             }
             
+            console.log('PDF extraction complete, length:', fullText.length);
+            
             if (fullText.trim().length > 50) {
               resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
             } else {
               resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but appears to be image-based or has no readable text. Please describe the content or copy text directly.`);
             }
           } catch (error) {
+            console.error('PDF extraction error:', error);
             resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded successfully. Please describe what's in the document and I can help you analyze it.`);
           }
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
