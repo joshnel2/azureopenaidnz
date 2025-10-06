@@ -105,16 +105,9 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
           
           const uint8Array = new Uint8Array(arrayBuffer);
+          const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
           
-          let pdf;
           let fullText = '';
-          
-          pdf = await pdfjsLib.getDocument({ 
-            data: uint8Array,
-            useWorkerFetch: false,
-            isEvalSupported: false,
-            useSystemFonts: true
-          }).promise;
           
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
