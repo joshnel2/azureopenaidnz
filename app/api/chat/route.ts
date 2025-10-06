@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       const { client: openaiClient, deploymentName } = createOpenAIClient();
       
       const response = await openaiClient.chat.completions.create({
-        model: deploymentName,
+        model: deploymentName as any,
         messages: messagesWithSystem.map(msg => ({
           role: msg.role,
           content: msg.content
