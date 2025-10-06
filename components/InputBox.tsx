@@ -96,14 +96,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         const result = e.target?.result;
         
         if (file.type.startsWith('image/')) {
-          try {
-            const base64Data = (result as string).split(',')[1];
-            const mimeType = file.type;
-            resolve(`[IMAGE: ${file.name}]\n\nImage data (base64-encoded for vision analysis):\ndata:${mimeType};base64,${base64Data}\n\nPlease analyze this image using your vision capabilities and extract any text, tables, or important information. Provide detailed OCR results and document analysis.`);
-          } catch (error) {
-            console.error('Image processing error:', error);
-            resolve(`[IMAGE: ${file.name}]\n\nImage uploaded. Please provide guidance on image analysis.`);
-          }
+          resolve(`[IMAGE FILE: ${file.name}]\n\nThis appears to be an image file. For best results with legal documents, please:\n1. Convert the image to PDF format, or\n2. Use OCR software to extract the text first, or\n3. Describe what you see in the image and I can provide guidance.\n\nI can still help analyze and draft documents based on your description of the image content.`);
         } else if (file.type === 'application/pdf') {
           // For PDFs, use dynamic import to avoid SSR issues
           try {
@@ -240,10 +233,8 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         resolve(`[FILE: ${file.name}]\n\nFile uploaded but could not be processed. Please provide general guidance about this type of file.`);
       };
       
-      // Read as ArrayBuffer for PDFs and Word docs, DataURL for images, text for others
-      if (file.type.startsWith('image/')) {
-        reader.readAsDataURL(file);
-      } else if (file.type === 'application/pdf' || 
+      // Read as ArrayBuffer for PDFs and Word docs, text for others
+      if (file.type === 'application/pdf' || 
           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
           file.type === 'application/msword' ||
           file.name.toLowerCase().endsWith('.docx') ||

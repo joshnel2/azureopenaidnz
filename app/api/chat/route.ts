@@ -3,7 +3,7 @@ import { createOpenAIClient, SYSTEM_PROMPT } from '@/lib/openai';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string | Array<{type: string; text?: string; image_url?: {url: string}}>;
+  content: string;
 }
 
 export interface ChatRequest {
@@ -34,36 +34,14 @@ export async function POST(req: NextRequest) {
           const { client: openaiClient, deploymentName } = createOpenAIClient();
           console.log('Deployment name:', deploymentName);
           
-          console.log('Sending request to Azure OpenAI with enhanced capabilities...');
-          
-          const processedMessages = messagesWithSystem.map(msg => {
-            if (typeof msg.content === 'string' && msg.content.includes('data:image/')) {
-              const imageMatch = msg.content.match(/data:image\/[^;]+;base64,[^\s\n]+/);
-              if (imageMatch) {
-                const imageUrl = imageMatch[0];
-                const textParts = msg.content.split(imageUrl);
-                const beforeText = textParts[0].replace(/\[IMAGE:.*?\]\n\nImage data \(base64-encoded for vision analysis\):\n/, '').trim();
-                const afterText = textParts[1] ? textParts[1].replace(/\n\nPlease analyze this image.*$/, '').trim() : '';
-                const finalText = (beforeText + ' ' + afterText).trim() || 'Please analyze this image and extract any text or information.';
-                
-                return {
-                  role: msg.role,
-                  content: [
-                    { type: 'text', text: finalText },
-                    { type: 'image_url', image_url: { url: imageUrl } }
-                  ]
-                };
-              }
-            }
-            return {
-              role: msg.role,
-              content: msg.content
-            };
-          });
+          console.log('Sending request to Azure OpenAI...');
           
           const response = await openaiClient.chat.completions.create({
             model: deploymentName,
-            messages: processedMessages as any,
+            messages: messagesWithSystem.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
             stream: true
           });
           
