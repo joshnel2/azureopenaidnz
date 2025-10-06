@@ -14,10 +14,24 @@ export interface ChatRequest {
 export async function POST(req: NextRequest) {
   const { messages }: ChatRequest = await req.json();
 
+  const lastUserMessage = messages[messages.length - 1]?.content || '';
+  let webContext = '';
+  
+  if (shouldSearch(lastUserMessage)) {
+    webContext = await searchWeb(lastUserMessage);
+  }
+
   const messagesWithSystem: ChatMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
     ...messages
   ];
+
+  if (webContext) {
+    messagesWithSystem[messagesWithSystem.length - 1] = {
+      role: 'user',
+      content: `${lastUserMessage}\n\n[Web Search Results]:\n${webContext}`
+    };
+  }
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -29,61 +43,12 @@ export async function POST(req: NextRequest) {
           role: msg.role,
           content: msg.content
         })),
-        stream: true,
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'search_web',
-              description: 'Search the web for current information, recent events, news, or real-time data. Use this when you need up-to-date information beyond your training data.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  query: {
-                    type: 'string',
-                    description: 'The search query to find current information'
-                  }
-                },
-                required: ['query']
-              }
-            }
-          }
-        ]
+        stream: true
       });
 
       for await (const chunk of response) {
         const choice = chunk.choices[0];
-        
-        if (choice?.delta?.tool_calls) {
-          const toolCall = choice.delta.tool_calls[0];
-          if (toolCall?.function?.name === 'search_web' && toolCall?.function?.arguments) {
-            const args = JSON.parse(toolCall.function.arguments);
-            const searchResults = await searchWeb(args.query);
-            
-            const followUpResponse = await openaiClient.chat.completions.create({
-              model: deploymentName as any,
-              messages: [
-                ...messagesWithSystem.map(msg => ({
-                  role: msg.role,
-                  content: msg.content
-                })),
-                {
-                  role: 'system',
-                  content: `Web Search Results:\n${searchResults}\n\nUse this information to provide an accurate, up-to-date response.`
-                }
-              ],
-              stream: true
-            });
-            
-            for await (const followChunk of followUpResponse) {
-              const followChoice = followChunk.choices[0];
-              if (followChoice?.delta?.content) {
-                const data = JSON.stringify({ content: followChoice.delta.content });
-                controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
-              }
-            }
-          }
-        } else if (choice?.delta?.content) {
+        if (choice?.delta?.content) {
           const data = JSON.stringify({ content: choice.delta.content });
           controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
         }
