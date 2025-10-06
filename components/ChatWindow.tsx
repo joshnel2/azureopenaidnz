@@ -301,7 +301,7 @@ export default function ChatWindow() {
                   How can I assist with your legal work today?
                 </h2>
                 <p className="text-lg text-gray-600 mb-12 leading-relaxed">
-                  I'm here to support your legal practice with research, document analysis, template generation, and case preparation assistance.
+                  Powered by GPT-5 mini with enhanced real-time knowledge, advanced OCR, and superior document analysis. I provide current legal research, analyze any document format, and generate professional legal content.
                 </p>
                 
                 {/* Professional Feature Cards */}
@@ -312,8 +312,8 @@ export default function ChatWindow() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Legal Research</h3>
-                    <p className="text-sm text-gray-600">Get research assistance on corporate, litigation, and real estate matters</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">Real-Time Legal Research</h3>
+                    <p className="text-sm text-gray-600">Current case law, regulations, and legal developments with enhanced knowledge</p>
                   </div>
                   
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
@@ -322,8 +322,8 @@ export default function ChatWindow() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Case Document Review</h3>
-                    <p className="text-sm text-gray-600">Upload and analyze client contracts, agreements, and case files</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">Advanced Document OCR</h3>
+                    <p className="text-sm text-gray-600">Upload PDFs, images, or scans - superior text extraction and analysis</p>
                   </div>
                   
                   <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
@@ -338,8 +338,8 @@ export default function ChatWindow() {
                 </div>
 
                 <div className="text-center">
-                  <p className="text-sm text-gray-500 bg-gray-50 inline-block px-4 py-2 rounded-full">
-                    💼 Upload case files for analysis or ask about legal research and document drafting
+                  <p className="text-sm text-gray-500 bg-gradient-to-r from-blue-50 to-indigo-50 inline-block px-6 py-3 rounded-full border border-blue-200">
+                    ⚡ Enhanced with GPT-5 mini • Real-time legal knowledge • Advanced OCR • Upload any document format
                   </p>
                 </div>
               </div>
