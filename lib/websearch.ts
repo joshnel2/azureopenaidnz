@@ -27,7 +27,7 @@ export async function searchWeb(query: string): Promise<string> {
 export function shouldSearch(message: string): boolean {
   const searchKeywords = [
     'current', 'recent', 'latest', 'today', 'now', 'this week', 'this month', 
-    'this year', '2024', '2025', 'news', 'update', 'what is happening',
+    'this year', '2025', '2026', 'news', 'update', 'what is happening',
     'real-time', 'live', 'breaking', 'just announced'
   ];
   
