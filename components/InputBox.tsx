@@ -98,40 +98,24 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         if (file.type.startsWith('image/')) {
           resolve(`[IMAGE FILE: ${file.name}]\n\nThis appears to be an image file. For best results with legal documents, please:\n1. Convert the image to PDF format, or\n2. Use OCR software to extract the text first, or\n3. Describe what you see in the image and I can provide guidance.\n\nI can still help analyze and draft documents based on your description of the image content.`);
         } else if (file.type === 'application/pdf') {
-          try {
-            const arrayBuffer = result as ArrayBuffer;
-            const pdfjsLib = await import('pdfjs-dist');
-            
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-            
-            console.log('Starting PDF extraction for:', file.name);
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise;
-            console.log('PDF loaded, pages:', pdf.numPages);
-            
-            let fullText = '';
-            
-            for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-              const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
-              
-              if (pageText) {
-                fullText += `\n--- Page ${i} ---\n${pageText}\n`;
-              }
-            }
-            
-            console.log('PDF extraction complete, length:', fullText.length);
-            
-            if (fullText.trim().length > 50) {
-              resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
-            } else {
-              resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but appears to be image-based or has no readable text. Please describe the content or copy text directly.`);
-            }
-          } catch (error) {
-            console.error('PDF extraction error:', error);
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded successfully. Please describe what's in the document and I can help you analyze it.`);
+          const arrayBuffer = result as ArrayBuffer;
+          const pdfjsLib = await import('pdfjs-dist');
+          
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+          
+          const uint8Array = new Uint8Array(arrayBuffer);
+          const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+          
+          let fullText = '';
+          
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += `\n--- Page ${i} ---\n${pageText}\n`;
           }
+          
+          resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.type === 'application/msword' ||
                    file.name.toLowerCase().endsWith('.docx') ||
