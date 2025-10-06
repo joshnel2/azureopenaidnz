@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenAIClient, SYSTEM_PROMPT } from '@/lib/openai';
-import { searchWeb, shouldSearch } from '@/lib/websearch';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -14,18 +13,10 @@ export interface ChatRequest {
 export async function POST(req: NextRequest) {
   const { messages }: ChatRequest = await req.json();
 
-  const lastUserMessage = messages[messages.length - 1]?.content || '';
-  const webContext = await searchWeb(lastUserMessage);
-
   const messagesWithSystem: ChatMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
     ...messages
   ];
-
-  messagesWithSystem[messagesWithSystem.length - 1] = {
-    role: 'user',
-    content: `${lastUserMessage}\n\n[Web Search Context]:\n${webContext}`
-  };
 
   const stream = new ReadableStream({
     async start(controller) {
