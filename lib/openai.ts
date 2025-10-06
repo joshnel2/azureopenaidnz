@@ -62,7 +62,7 @@ export function createOpenAIClient() {
     client: new OpenAI({
       apiKey,
       baseURL,
-      defaultQuery: { 'api-version': '2024-12-01-preview' },
+      defaultQuery: { 'api-version': '2024-10-21' },
       defaultHeaders: {
         'api-key': apiKey,
       },
