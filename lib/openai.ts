@@ -44,25 +44,19 @@ You are assisting legal professionals in their practice - provide detailed, prof
 export function createOpenAIClient() {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const apiKey = process.env.AZURE_OPENAI_API_KEY;
-  const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-5-mini';
+  const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
-  console.log('Environment check:');
-  console.log('- Endpoint:', endpoint ? 'Set' : 'Missing');
-  console.log('- API Key:', apiKey ? 'Set' : 'Missing');
-  console.log('- Deployment:', deploymentName);
-
-  if (!endpoint || !apiKey) {
-    throw new Error('Azure OpenAI endpoint and API key must be provided');
+  if (!endpoint || !apiKey || !deploymentName) {
+    throw new Error('Azure OpenAI credentials not configured');
   }
 
-  const baseURL = `${endpoint}openai/deployments/${deploymentName}`;
-  console.log('- Base URL:', baseURL);
+  const baseURL = `${endpoint}/openai/deployments/${deploymentName}`;
 
   return {
     client: new OpenAI({
       apiKey,
       baseURL,
-      defaultQuery: { 'api-version': '2024-10-21' },
+      defaultQuery: { 'api-version': '2024-08-01-preview' },
       defaultHeaders: {
         'api-key': apiKey,
       },
