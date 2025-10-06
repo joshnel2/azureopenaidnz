@@ -64,10 +64,7 @@ export async function POST(req: NextRequest) {
           const response = await openaiClient.chat.completions.create({
             model: deploymentName,
             messages: processedMessages as any,
-            stream: true,
-            temperature: 0.7,
-            max_tokens: 4000,
-            top_p: 0.95
+            stream: true
           });
           
           console.log('Got response, starting to stream...');
