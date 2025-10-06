@@ -15,23 +15,17 @@ export async function POST(req: NextRequest) {
   const { messages }: ChatRequest = await req.json();
 
   const lastUserMessage = messages[messages.length - 1]?.content || '';
-  let webContext = '';
-  
-  if (shouldSearch(lastUserMessage)) {
-    webContext = await searchWeb(lastUserMessage);
-  }
+  const webContext = await searchWeb(lastUserMessage);
 
   const messagesWithSystem: ChatMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
     ...messages
   ];
 
-  if (webContext) {
-    messagesWithSystem[messagesWithSystem.length - 1] = {
-      role: 'user',
-      content: `${lastUserMessage}\n\n[Web Search Results]:\n${webContext}`
-    };
-  }
+  messagesWithSystem[messagesWithSystem.length - 1] = {
+    role: 'user',
+    content: `${lastUserMessage}\n\n[Web Search Context]:\n${webContext}`
+  };
 
   const stream = new ReadableStream({
     async start(controller) {
