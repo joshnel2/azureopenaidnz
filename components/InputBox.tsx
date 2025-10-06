@@ -98,98 +98,34 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         if (file.type.startsWith('image/')) {
           resolve(`[IMAGE FILE: ${file.name}]\n\nThis appears to be an image file. For best results with legal documents, please:\n1. Convert the image to PDF format, or\n2. Use OCR software to extract the text first, or\n3. Describe what you see in the image and I can provide guidance.\n\nI can still help analyze and draft documents based on your description of the image content.`);
         } else if (file.type === 'application/pdf') {
-          // For PDFs, use dynamic import to avoid SSR issues
           try {
             const arrayBuffer = result as ArrayBuffer;
-            
-            // Check if we're in a browser environment
-            if (typeof window === 'undefined') {
-              throw new Error('PDF processing requires browser environment');
-            }
-            
-            // Dynamic import for client-side only
             const pdfjsLib = await import('pdfjs-dist');
             
-            // Configure worker with local fallback and multiple CDN options
-            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-              // Use local worker first (most reliable for production)
-              pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-              console.log('Configured PDF.js worker: local file');
-            }
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
             
-            console.log('PDF.js version:', pdfjsLib.version);
-            console.log('Worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc);
-            
-            // Convert ArrayBuffer to Uint8Array for proper PDF.js handling
             const uint8Array = new Uint8Array(arrayBuffer);
+            const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise;
             
-            // Try to load PDF with local worker first
-            let pdf;
-            try {
-              pdf = await pdfjsLib.getDocument({ 
-                data: uint8Array,
-                verbosity: 0 // Reduce console output
-              }).promise;
-            } catch (workerError) {
-              console.warn('Local worker failed, trying CDN fallback:', workerError);
-              
-              // Fallback to CDN worker
-              pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-              
-              pdf = await pdfjsLib.getDocument({ 
-                data: arrayBuffer,
-                verbosity: 0
-              }).promise;
-            }
             let fullText = '';
             
-            console.log(`Processing PDF: ${pdf.numPages} total pages - processing ALL pages`);
-            
-            // Process ALL pages - no limit
             for (let i = 1; i <= pdf.numPages; i++) {
-              console.log(`Processing page ${i} of ${pdf.numPages}`);
-              try {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
-                
-                if (pageText) {
-                  fullText += `\n--- Page ${i} ---\n${pageText}\n`;
-                } else {
-                  fullText += `\n--- Page ${i} ---\n[No readable text found on this page]\n`;
-                }
-              } catch (pageError) {
-                console.error(`Error processing page ${i}:`, pageError);
-                const errorMessage = pageError instanceof Error ? pageError.message : 'Unknown error';
-                fullText += `\n--- Page ${i} ---\n[Error reading page: ${errorMessage}]\n`;
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map((item: any) => item.str).join(' ').trim();
+              
+              if (pageText) {
+                fullText += `\n--- Page ${i} ---\n${pageText}\n`;
               }
             }
             
-            console.log(`PDF processing complete. Extracted ${fullText.length} characters from ${pdf.numPages} pages.`);
-            console.log('Sample extracted text:', fullText.substring(0, 200) + '...');
-            
-            if (fullText.trim().length < 100) {
-              console.warn('PDF has very little text content - might be image-based');
-              resolve(`[PDF FILE: ${file.name}]\n\nThis PDF appears to contain mostly images or has very little readable text. This might be a scanned document or image-based PDF. For best results, please use a PDF with selectable text or copy and paste the content directly.\n\nExtracted text preview: "${fullText.trim().substring(0, 200)}..."`);
-            } else {
+            if (fullText.trim().length > 50) {
               resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+            } else {
+              resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but appears to be image-based or has no readable text. Please describe the content or copy text directly.`);
             }
           } catch (error) {
-            console.error('PDF processing error:', error);
-            console.error('Error details:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            
-            // Provide more specific error information
-            let errorDetails = '';
-            if (errorMessage.includes('worker')) {
-              errorDetails = ' This appears to be a PDF.js worker loading issue.';
-            } else if (errorMessage.includes('Invalid PDF')) {
-              errorDetails = ' The PDF file appears to be corrupted or invalid.';
-            } else if (errorMessage.includes('password')) {
-              errorDetails = ' The PDF appears to be password-protected.';
-            }
-            
-            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded but text extraction failed. Error: ${errorMessage}.${errorDetails}\n\nThe AI can still provide general guidance about PDF document analysis. For detailed analysis, please copy and paste the text content directly.`);
+            resolve(`[PDF FILE: ${file.name}]\n\nPDF uploaded successfully. Please describe what's in the document and I can help you analyze it.`);
           }
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.type === 'application/msword' ||
