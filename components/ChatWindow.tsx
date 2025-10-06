@@ -168,7 +168,7 @@ export default function ChatWindow() {
     }
   }, [currentChatId]); // Only trigger when chat ID changes (new chat or loaded chat)
 
-  const handleSendMessage = async (aiContent: string, displayContent?: string) => {
+  const handleSendMessage = async (aiContent: string, displayContent?: string, enableWebSearch?: boolean) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: displayContent || aiContent, // Use display content for user message bubble
@@ -197,7 +197,8 @@ export default function ChatWindow() {
               role: 'user',
               content: aiContent // Send the full AI content with file data
             }
-          ]
+          ],
+          enableWebSearch
         }),
       });
 
