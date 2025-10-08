@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOpenAIClient, SYSTEM_PROMPT } from '@/lib/openai';
+import { logChatMessage } from '@/lib/telemetry';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest) {
     ...messages
   ];
 
+  const userMessage = messages[messages.length - 1]?.content || '';
+  const userId = req.headers.get('x-forwarded-for') || 'anonymous';
+  
   const stream = new ReadableStream({
     async start(controller) {
       const { client: openaiClient, deploymentName } = createOpenAIClient();
@@ -31,13 +35,18 @@ export async function POST(req: NextRequest) {
         stream: true
       });
 
+      let assistantMessage = '';
+
       for await (const chunk of response) {
         const choice = chunk.choices[0];
         if (choice?.delta?.content) {
+          assistantMessage += choice.delta.content;
           const data = JSON.stringify({ content: choice.delta.content });
           controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
         }
       }
+
+      logChatMessage(userId, userMessage, assistantMessage);
 
       controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
       controller.close();
