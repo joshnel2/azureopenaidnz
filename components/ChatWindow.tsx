@@ -197,8 +197,7 @@ export default function ChatWindow() {
               role: 'user',
               content: aiContent // Send the full AI content with file data
             }
-          ],
-          enableWebSearch
+          ]
         }),
       });
 
