@@ -19,6 +19,7 @@ export default function ChatWindow() {
   const [currentChatId, setCurrentChatId] = useState<string>('default');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load messages from localStorage on component mount
   useEffect(() => {
@@ -168,7 +169,38 @@ export default function ChatWindow() {
     }
   }, [currentChatId]); // Only trigger when chat ID changes (new chat or loaded chat)
 
+  const stopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
   const handleSendMessage = async (aiContent: string, displayContent?: string) => {
+    // If currently loading, stop the current response first
+    if (isLoading) {
+      stopGenerating();
+      
+      // Save the partial streaming message if it exists
+      if (streamingMessage) {
+        const assistantMessageObj: Message = {
+          id: (Date.now() + 1).toString(),
+          content: streamingMessage,
+          role: 'assistant',
+          timestamp: new Date(),
+        };
+        const finalMessages = [...messages, assistantMessageObj];
+        setMessages(finalMessages);
+        saveChatSession(finalMessages);
+      }
+      
+      setIsLoading(false);
+      setStreamingMessage('');
+      
+      // Small delay to ensure state updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: displayContent || aiContent, // Use display content for user message bubble
@@ -180,6 +212,9 @@ export default function ChatWindow() {
     setMessages(updatedMessages);
     setIsLoading(true);
     setStreamingMessage('');
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await fetch('/api/chat', {
@@ -199,6 +234,7 @@ export default function ChatWindow() {
             }
           ]
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -255,9 +291,29 @@ export default function ChatWindow() {
         // Save chat session to history
         saveChatSession(finalMessages);
       }
+    } catch (error: any) {
+      // Handle abort gracefully
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        // Save partial message if exists
+        if (streamingMessage) {
+          const assistantMessageObj: Message = {
+            id: (Date.now() + 1).toString(),
+            content: streamingMessage,
+            role: 'assistant',
+            timestamp: new Date(),
+          };
+          const finalMessages = [...updatedMessages, assistantMessageObj];
+          setMessages(finalMessages);
+          saveChatSession(finalMessages);
+        }
+      } else {
+        console.error('Error in handleSendMessage:', error);
+      }
     } finally {
       setIsLoading(false);
       setStreamingMessage('');
+      abortControllerRef.current = null;
     }
   };
 
@@ -384,7 +440,7 @@ export default function ChatWindow() {
 
         {/* Input - ChatGPT Style */}
         <div className="flex-shrink-0">
-          <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
+          <InputBox onSendMessage={handleSendMessage} isGenerating={isLoading} onStopGenerating={stopGenerating} />
         </div>
       </div>
     </>

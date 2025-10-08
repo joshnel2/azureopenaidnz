@@ -4,7 +4,8 @@ import React, { useState, KeyboardEvent, useRef } from 'react';
 
 interface InputBoxProps {
   onSendMessage: (aiMessage: string, displayMessage?: string) => void;
-  disabled?: boolean;
+  isGenerating?: boolean;
+  onStopGenerating?: () => void;
 }
 
 interface FileWithContent {
@@ -12,13 +13,13 @@ interface FileWithContent {
   content: string;
 }
 
-export default function InputBox({ onSendMessage, disabled = false }: InputBoxProps) {
+export default function InputBox({ onSendMessage, isGenerating = false, onStopGenerating }: InputBoxProps) {
   const [message, setMessage] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithContent[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
-    if ((message.trim() || uploadedFiles.length > 0) && !disabled) {
+    if (message.trim() || uploadedFiles.length > 0) {
       let userDisplayMessage = message.trim();
       let aiAnalysisMessage = message.trim();
       
