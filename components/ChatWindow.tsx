@@ -19,6 +19,7 @@ export default function ChatWindow() {
   const [currentChatId, setCurrentChatId] = useState<string>('default');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load messages from localStorage on component mount
   useEffect(() => {
@@ -168,6 +169,15 @@ export default function ChatWindow() {
     }
   }, [currentChatId]); // Only trigger when chat ID changes (new chat or loaded chat)
 
+  const handleCancelResponse = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    setStreamingMessage('');
+  };
+
   const handleSendMessage = async (aiContent: string, displayContent?: string, enableWebSearch?: boolean) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -180,6 +190,8 @@ export default function ChatWindow() {
     setMessages(updatedMessages);
     setIsLoading(true);
     setStreamingMessage('');
+
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await fetch('/api/chat', {
@@ -199,6 +211,7 @@ export default function ChatWindow() {
             }
           ]
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -255,9 +268,16 @@ export default function ChatWindow() {
         // Save chat session to history
         saveChatSession(finalMessages);
       }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        // Request was cancelled, do nothing
+      } else {
+        console.error('Error in chat:', error);
+      }
     } finally {
       setIsLoading(false);
       setStreamingMessage('');
+      abortControllerRef.current = null;
     }
   };
 
@@ -379,7 +399,7 @@ export default function ChatWindow() {
 
         {/* Input - ChatGPT Style */}
         <div className="flex-shrink-0">
-          <InputBox onSendMessage={handleSendMessage} disabled={isLoading} />
+          <InputBox onSendMessage={handleSendMessage} onCancel={handleCancelResponse} isLoading={isLoading} />
         </div>
       </div>
     </>

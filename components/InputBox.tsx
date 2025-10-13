@@ -4,7 +4,8 @@ import React, { useState, KeyboardEvent, useRef } from 'react';
 
 interface InputBoxProps {
   onSendMessage: (aiMessage: string, displayMessage?: string) => void;
-  disabled?: boolean;
+  onCancel?: () => void;
+  isLoading?: boolean;
 }
 
 interface FileWithContent {
@@ -12,13 +13,13 @@ interface FileWithContent {
   content: string;
 }
 
-export default function InputBox({ onSendMessage, disabled = false }: InputBoxProps) {
+export default function InputBox({ onSendMessage, onCancel, isLoading = false }: InputBoxProps) {
   const [message, setMessage] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithContent[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
-    if ((message.trim() || uploadedFiles.length > 0) && !disabled) {
+    if ((message.trim() || uploadedFiles.length > 0) && !isLoading) {
       let userDisplayMessage = message.trim();
       let aiAnalysisMessage = message.trim();
       
@@ -235,7 +236,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
             onKeyPress={handleKeyPress}
             onKeyDown={handleKeyDown}
             placeholder="Ask a legal question, request document analysis, or get help with legal matters..."
-            disabled={disabled}
+            disabled={false}
             rows={1}
             className="w-full px-0 py-2 border-none resize-none focus:outline-none text-gray-800 placeholder-gray-500"
             style={{ minHeight: '24px', maxHeight: '120px' }}
@@ -253,7 +254,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
                 e.stopPropagation();
                 fileInputRef.current?.click();
               }}
-              disabled={disabled}
+              disabled={false}
               className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
               title="Upload documents for analysis"
             >
@@ -265,22 +266,39 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
 
           </div>
 
-          {/* Send Button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleSubmit();
-            }}
-            disabled={disabled || (!message.trim() && uploadedFiles.length === 0)}
-            className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
-          >
-            <span className="text-sm font-semibold">Send</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
+          {/* Send or Cancel Button */}
+          {isLoading ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onCancel?.();
+              }}
+              className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+            >
+              <span className="text-sm font-semibold">Cancel</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit();
+              }}
+              disabled={!message.trim() && uploadedFiles.length === 0}
+              className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+            >
+              <span className="text-sm font-semibold">Send</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
