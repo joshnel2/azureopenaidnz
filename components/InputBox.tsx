@@ -106,16 +106,23 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           const uint8Array = new Uint8Array(arrayBuffer);
           const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
           
-          let fullText = '';
+          const CHUNK_THRESHOLD = 50;
+          const pages: string[] = [];
           
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map((item: any) => item.str).join(' ');
-            fullText += `\n--- Page ${i} ---\n${pageText}\n`;
+            pages.push(`--- Page ${i} ---\n${pageText}`);
           }
           
-          resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+          if (pdf.numPages <= CHUNK_THRESHOLD) {
+            resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${pages.join('\n')}`);
+          } else {
+            const { chunkAndSummarizePDF } = await import('@/lib/pdfChunking');
+            const result = await chunkAndSummarizePDF(pages, file.name, '/api/chat');
+            resolve(result);
+          }
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.type === 'application/msword' ||
                    file.name.toLowerCase().endsWith('.docx') ||
