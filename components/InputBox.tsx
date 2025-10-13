@@ -235,7 +235,7 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
             }}
             onKeyPress={handleKeyPress}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a legal question, request document analysis, or get help with legal matters..."
+            placeholder="Ask a question, request document analysis, or get help with drafting or editing..."
             disabled={false}
             rows={1}
             className="w-full px-0 py-2 border-none resize-none focus:outline-none text-gray-800 placeholder-gray-500"
@@ -315,7 +315,7 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
         {/* Internal Use Notice */}
         <div className="mt-3 text-center">
           <p className="text-xs text-gray-500">
-            Internal Assistant • For Dorf Nelson & Zauderer staff use only • Confidential work product
+            Internal Assistant • For Dorf Nelson & Zauderer LLP staff use only • Confidential work product
           </p>
         </div>
       </div>

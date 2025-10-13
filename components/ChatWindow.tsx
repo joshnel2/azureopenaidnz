@@ -321,28 +321,28 @@ export default function ChatWindow() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Analyzing Documents</h3>
-                    <p className="text-sm text-gray-600">Upload contracts, agreements, and legal documents for comprehensive analysis and insights</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">Analyze Content</h3>
+                    <p className="text-sm text-gray-600">Upload contracts, transcripts, agreements, spreadsheets, or other documents for in-depth analysis and actionable insights.</p>
                   </div>
                   
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                     <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Drafting Emails</h3>
-                    <p className="text-sm text-gray-600">Generate professional client communications and legal correspondence with ease</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">Draft Documents</h3>
+                    <p className="text-sm text-gray-600">Create professional correspondence or generate template documents to kick-start your work with confidence.</p>
                   </div>
                   
                   <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-100 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                     <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Template Generation</h3>
-                    <p className="text-sm text-gray-600">Create professional legal templates and client documents</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">Revise and Review</h3>
+                    <p className="text-sm text-gray-600">Submit existing documents for proofreading, detailed analysis, and informed suggestions for improvement.</p>
                   </div>
                 </div>
 
