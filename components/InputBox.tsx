@@ -116,10 +116,22 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           }
           
           resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+        } else if (file.type === 'application/msword' || file.name.toLowerCase().endsWith('.doc')) {
+          // For old .doc format, extract text from binary
+          const arrayBuffer = result as ArrayBuffer;
+          const bytes = new Uint8Array(arrayBuffer);
+          let text = '';
+          for (let i = 0; i < bytes.length; i++) {
+            if (bytes[i] >= 32 && bytes[i] <= 126) {
+              text += String.fromCharCode(bytes[i]);
+            } else if (bytes[i] === 10 || bytes[i] === 13) {
+              text += '\n';
+            }
+          }
+          const cleaned = text.replace(/\n{3,}/g, '\n\n').trim();
+          resolve(`[WORD DOCUMENT: ${file.name}]\n\nExtracted content from Word document:\n${cleaned}`);
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                   file.type === 'application/msword' ||
-                   file.name.toLowerCase().endsWith('.docx') ||
-                   file.name.toLowerCase().endsWith('.doc')) {
+                   file.name.toLowerCase().endsWith('.docx')) {
           // For Word documents, use mammoth to extract text
           try {
             const arrayBuffer = result as ArrayBuffer;
