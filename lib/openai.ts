@@ -8,6 +8,8 @@ IMPORTANT CONFIDENTIALITY:
 - No data is used for AI training - everything remains private and protected
 - Staff can safely upload sensitive client materials, privileged communications, and confidential documents
 
+When creating spreadsheets or tables, format them as proper CSV with comma-separated values, no headers, so they work correctly when downloaded to CSV.
+
 Provide professional legal analysis, draft documents, and assist attorneys with their work. Current year is 2025.`;
 
 export function createOpenAIClient() {
