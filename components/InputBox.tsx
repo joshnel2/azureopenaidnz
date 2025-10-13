@@ -116,6 +116,23 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           }
           
           resolve(`[PDF FILE: ${file.name}]\n\nExtracted content from PDF (${pdf.numPages} pages):\n${fullText}`);
+        } else if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
+          // For CSV files, read as text and format nicely
+          const content = result as string;
+          const lines = content.split('\n').filter(line => line.trim());
+          const formattedContent = lines.map((line, index) => {
+            if (index === 0) {
+              return `Header: ${line}`;
+            }
+            return `Row ${index}: ${line}`;
+          }).join('\n');
+          resolve(`[CSV SPREADSHEET: ${file.name}]\n\nExtracted content from CSV file (${lines.length} rows):\n${formattedContent}`);
+        } else if (file.type === 'application/vnd.ms-excel' ||
+                   file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                   file.name.toLowerCase().endsWith('.xls') ||
+                   file.name.toLowerCase().endsWith('.xlsx')) {
+          // For Excel files, provide helpful message
+          resolve(`[EXCEL SPREADSHEET: ${file.name}]\n\nExcel file detected. For best results, please save this file as CSV format and re-upload, or describe the data you need help analyzing. I can help you analyze spreadsheet data, create formulas, or provide guidance on the information.`);
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.type === 'application/msword' ||
                    file.name.toLowerCase().endsWith('.docx') ||
@@ -158,7 +175,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         resolve(`[FILE: ${file.name}]\n\nFile uploaded but could not be processed. Please provide general guidance about this type of file.`);
       };
       
-      // Read as ArrayBuffer for PDFs and Word docs, text for others
+      // Read as ArrayBuffer for PDFs and Word docs, text for others (including CSV)
       if (file.type === 'application/pdf' || 
           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
           file.type === 'application/msword' ||
@@ -166,6 +183,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
           file.name.toLowerCase().endsWith('.doc')) {
         reader.readAsArrayBuffer(file);
       } else {
+        // Read as text for CSV, TXT, and other text-based files
         reader.readAsText(file);
       }
     });
@@ -276,7 +294,7 @@ export default function InputBox({ onSendMessage, disabled = false }: InputBoxPr
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,.doc,.docx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp"
+        accept=".pdf,.doc,.docx,.txt,.rtf,.csv,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp"
         onChange={handleFileUpload}
         className="hidden"
       />
