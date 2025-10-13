@@ -290,7 +290,7 @@ export default function ChatWindow() {
                   How can I assist with your legal work today?
                 </h2>
                 <p className="text-lg text-gray-600 mb-12 leading-relaxed">
-                  Powered by GPT-5 mini with enhanced real-time knowledge, advanced OCR, and superior document analysis. I provide current legal research, analyze any document format, and generate professional legal content.
+                  Your AI assistant for legal work.
                 </p>
                 
                 {/* Professional Feature Cards */}
@@ -326,11 +326,6 @@ export default function ChatWindow() {
                   </div>
                 </div>
 
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 bg-gradient-to-r from-blue-50 to-indigo-50 inline-block px-6 py-3 rounded-full border border-blue-200">
-                    ⚡ Enhanced with GPT-5 mini • Real-time legal knowledge • Advanced OCR • Upload any document format
-                  </p>
-                </div>
               </div>
             </div>
           )}
