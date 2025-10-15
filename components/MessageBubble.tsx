@@ -198,6 +198,28 @@ Please consult with a qualified attorney before using this document.
   }
 };
 
+// Parse CSV/table data from message
+const parseTableData = (text: string): string[][] | null => {
+  const lines = text.trim().split('\n');
+  
+  // Check if it looks like CSV data (multiple lines with commas)
+  const csvLines = lines.filter(line => line.includes(','));
+  if (csvLines.length < 2) return null;
+  
+  // Parse CSV rows
+  const rows = csvLines.map(line => {
+    // Simple CSV parsing (handles basic cases)
+    return line.split(',').map(cell => cell.trim().replace(/^["']|["']$/g, ''));
+  });
+  
+  // Validate all rows have similar column count
+  const columnCounts = rows.map(r => r.length);
+  const avgColumns = columnCounts.reduce((a, b) => a + b, 0) / columnCounts.length;
+  if (Math.max(...columnCounts) - Math.min(...columnCounts) > 2) return null; // Too inconsistent
+  
+  return rows;
+};
+
 export default function MessageBubble({ message, isUser, timestamp }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
 
@@ -321,7 +343,46 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
             )}
             
             <div className="prose prose-sm max-w-none">
-              <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>
+              {(() => {
+                // Check if message contains table data
+                const tableData = !isUser ? parseTableData(message) : null;
+                
+                if (tableData && tableData.length > 0) {
+                  // Render as table
+                  return (
+                    <>
+                      <div className="overflow-x-auto mb-4">
+                        <table className="min-w-full border-collapse border border-gray-300 bg-white shadow-sm rounded-lg overflow-hidden">
+                          <thead className="bg-gradient-to-r from-law-blue to-law-blue-dark text-white">
+                            <tr>
+                              {tableData[0].map((header, i) => (
+                                <th key={i} className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">
+                                  {header}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {tableData.slice(1).map((row, rowIndex) => (
+                              <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                                {row.map((cell, cellIndex) => (
+                                  <td key={cellIndex} className="border border-gray-300 px-4 py-2 text-sm text-gray-800">
+                                    {cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-xs text-gray-500 italic">Table generated from spreadsheet data</p>
+                    </>
+                  );
+                } else {
+                  // Regular text message
+                  return <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>;
+                }
+              })()}
             </div>
             
             {/* File attachment indicator */}
