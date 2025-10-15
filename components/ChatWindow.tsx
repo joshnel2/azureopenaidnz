@@ -197,9 +197,14 @@ export default function ChatWindow() {
       // Check if this message contains uploaded files
       const hasUploadedFiles = aiContent.includes('--- UPLOADED FILES FOR ANALYSIS ---');
       
-      // If files are uploaded, only send the current message (isolate document context)
-      // Otherwise, send full conversation history for regular chat
-      const messagesToSend = hasUploadedFiles 
+      // Check if user is explicitly asking about previous documents/context
+      const userText = displayContent?.toLowerCase() || aiContent.toLowerCase();
+      const referencingPrevious = /\b(both|previous|earlier|first|compare|all|these|those|prior|last)\b/.test(userText) ||
+                                  /\b(document|file|upload)s\b/.test(userText); // plural forms
+      
+      // If files are uploaded, only send current message (isolate document context)
+      // UNLESS user explicitly references previous documents
+      const messagesToSend = (hasUploadedFiles && !referencingPrevious)
         ? [{
             role: 'user' as const,
             content: aiContent
