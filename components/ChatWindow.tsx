@@ -194,22 +194,34 @@ export default function ChatWindow() {
     abortControllerRef.current = new AbortController();
 
     try {
+      // Check if this message contains uploaded files
+      const hasUploadedFiles = aiContent.includes('--- UPLOADED FILES FOR ANALYSIS ---');
+      
+      // If files are uploaded, only send the current message (isolate document context)
+      // Otherwise, send full conversation history for regular chat
+      const messagesToSend = hasUploadedFiles 
+        ? [{
+            role: 'user' as const,
+            content: aiContent
+          }]
+        : [
+            ...messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            {
+              role: 'user' as const,
+              content: aiContent
+            }
+          ];
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
-            {
-              role: 'user',
-              content: aiContent // Send the full AI content with file data
-            }
-          ]
+          messages: messagesToSend
         }),
         signal: abortControllerRef.current.signal,
       });
