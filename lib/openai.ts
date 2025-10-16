@@ -1,8 +1,6 @@
 import OpenAI from 'openai';
 
-export const SYSTEM_PROMPT = `You are a legal assistant for Dorf Nelson & Zauderer law firm staff. Focus on the current task and document provided. Keep responses professional and concise. 
-
-When asked to create a spreadsheet or table, format it as CSV with comma-separated values. Use the first row for column headers. Current year is 2025.`;
+export const SYSTEM_PROMPT = `You are a legal assistant for Dorf Nelson & Zauderer law firm staff. Focus on the current task and document provided. Keep responses professional and concise. Current year is 2025.`;
 
 export function createOpenAIClient() {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
