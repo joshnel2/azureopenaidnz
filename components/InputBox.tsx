@@ -131,6 +131,29 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
           }
           const cleaned = text.replace(/\n{3,}/g, '\n\n').trim();
           resolve(`[WORD DOCUMENT: ${file.name}]\n\nExtracted content from Word document:\n${cleaned}`);
+        } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                   file.type === 'application/vnd.ms-excel' ||
+                   file.name.toLowerCase().endsWith('.xlsx') ||
+                   file.name.toLowerCase().endsWith('.xls')) {
+          // For Excel files, parse using xlsx library
+          try {
+            const arrayBuffer = result as ArrayBuffer;
+            const xlsx = await import('xlsx');
+            const workbook = xlsx.read(arrayBuffer, { type: 'array' });
+            
+            let excelContent = '';
+            workbook.SheetNames.forEach((sheetName) => {
+              const sheet = workbook.Sheets[sheetName];
+              const csvData = xlsx.utils.sheet_to_csv(sheet);
+              excelContent += `\n--- Sheet: ${sheetName} ---\n${csvData}\n`;
+            });
+            
+            resolve(`[EXCEL FILE: ${file.name}]\n\nExtracted content from Excel spreadsheet (${workbook.SheetNames.length} sheet(s)):\n${excelContent}`);
+          } catch (error) {
+            console.error('Excel file processing error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            resolve(`[EXCEL FILE: ${file.name}]\n\nExcel file uploaded but parsing failed. Error: ${errorMessage}. Please provide guidance about this file.`);
+          }
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                    file.name.toLowerCase().endsWith('.docx')) {
           // For Word documents, use mammoth to extract text
@@ -171,12 +194,16 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
         resolve(`[FILE: ${file.name}]\n\nFile uploaded but could not be processed. Please provide general guidance about this type of file.`);
       };
       
-      // Read as ArrayBuffer for PDFs and Word docs, text for others (including CSV)
+      // Read as ArrayBuffer for PDFs, Excel files, and Word docs, text for others (including CSV)
       if (file.type === 'application/pdf' || 
           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.type === 'application/vnd.ms-excel' ||
           file.type === 'application/msword' ||
           file.name.toLowerCase().endsWith('.docx') ||
-          file.name.toLowerCase().endsWith('.doc')) {
+          file.name.toLowerCase().endsWith('.doc') ||
+          file.name.toLowerCase().endsWith('.xlsx') ||
+          file.name.toLowerCase().endsWith('.xls')) {
         reader.readAsArrayBuffer(file);
       } else {
         // Read as text for CSV, TXT, and other text-based files
@@ -307,7 +334,7 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,.doc,.docx,.txt,.rtf,.csv,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp"
+        accept=".pdf,.doc,.docx,.txt,.rtf,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp"
         onChange={handleFileUpload}
         className="hidden"
       />
