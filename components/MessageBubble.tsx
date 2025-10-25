@@ -67,16 +67,6 @@ Please consult with a qualified attorney before using this document.
                 ],
                 alignment: 'center',
               }),
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Legal Document",
-                    bold: true,
-                    size: 24,
-                  }),
-                ],
-                alignment: 'center',
-              }),
               new Paragraph({ text: "" }), // Empty line
               ...content.split('\n').map(line => 
                 new Paragraph({
