@@ -61,6 +61,15 @@ Please consult with a qualified attorney before using this document.
               new Paragraph({
                 children: [
                   new TextRun({
+                    text: `AI Generated: ${new Date().toLocaleDateString()}`,
+                    size: 20,
+                  }),
+                ],
+                alignment: 'center',
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
                     text: "Legal Document",
                     bold: true,
                     size: 24,
