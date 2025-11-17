@@ -30,7 +30,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center space-x-2"
               >
-                <span>For Faster Responses →</span>
+                <span>⚡ For Faster Responses →</span>
               </a>
               <div className="flex items-center space-x-2 text-xs text-gray-500">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
