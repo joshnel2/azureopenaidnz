@@ -20,9 +20,9 @@ export default function Home() {
                 href="https://dnzlarge-f3fwhzf5fpfhbygb.canadacentral-01.azurewebsites.net/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-law-blue hover:bg-law-blue-dark text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                className="px-4 py-2 bg-law-blue hover:bg-law-blue-dark text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center space-x-2"
               >
-                For Larger Documents
+                <span>Upload Larger Documents →</span>
               </a>
               <div className="flex items-center space-x-2 text-xs text-gray-500">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
