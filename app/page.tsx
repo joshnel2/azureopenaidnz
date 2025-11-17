@@ -15,9 +15,19 @@ export default function Home() {
                 <h1 className="text-lg font-semibold text-gray-900">Dorf Nelson & Zauderer Confidential AI Assistant</h1>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-              <span>Online</span>
+            <div className="flex items-center space-x-4">
+              <a 
+                href="https://dnzlarge-f3fwhzf5fpfhbygb.canadacentral-01.azurewebsites.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-law-blue hover:bg-law-blue-dark text-white text-sm font-medium rounded-lg transition-colors duration-200"
+              >
+                For Larger Documents
+              </a>
+              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <span>Online</span>
+              </div>
             </div>
           </div>
         </div>
