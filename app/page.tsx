@@ -32,6 +32,14 @@ export default function Home() {
               >
                 <span>⚡ For Faster Responses →</span>
               </a>
+              <a 
+                href="https://redlineai-fpb4c6b7f2dwcxh5.canadacentral-01.azurewebsites.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center space-x-2"
+              >
+                <span>Redline Documents</span>
+              </a>
               <div className="flex items-center space-x-2 text-xs text-gray-500">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 <span>Online</span>
