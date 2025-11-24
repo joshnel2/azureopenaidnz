@@ -267,14 +267,14 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
   };
 
   return (
-    <div className={`py-8 ${isUser ? 'bg-gradient-to-r from-gray-50 to-blue-50/30' : 'bg-white'} border-b border-gray-100/50`}>
+    <div className={`py-8 animate-slide-in-up ${isUser ? 'bg-gradient-to-r from-blue-50/40 to-indigo-50/30' : 'bg-white/60'} border-b border-gray-100/50 backdrop-blur-sm`}>
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-start space-x-4">
-          {/* Enhanced Avatar */}
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border-2 ${
+          {/* Modern Avatar with Enhanced Design */}
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg border-2 transition-all duration-300 hover:scale-110 ${
             isUser 
-              ? 'bg-gradient-to-br from-law-blue to-law-blue-dark text-white border-law-blue/20' 
-              : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'
+              ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-600 text-white border-blue-400/30 shadow-blue-500/30' 
+              : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 border-slate-200 shadow-slate-500/20'
           }`}>
             {isUser ? (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -289,19 +289,19 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
           
           {/* Message content - ChatGPT Style */}
           <div className="flex-1 min-w-0 relative group">
-            {/* Copy button for AI messages */}
+            {/* Modern Copy button for AI messages */}
             {!isUser && (
               <button
                 onClick={handleCopyText}
-                className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-gray-100 rounded-lg"
+                className="absolute -top-1 right-0 p-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-xl border border-transparent hover:border-blue-200 hover:shadow-md transform hover:scale-110"
                 title="Copy message"
               >
                 {copied ? (
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-slate-500 hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
@@ -324,47 +324,52 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
               </div>
             )}
             
-            {/* Professional Download buttons - Always show for AI responses */}
+            {/* Modern Download Section - Always show for AI responses */}
             {!isUser && (
-              <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl border border-gray-200">
-                <div className="flex items-center mb-3">
-                  <svg className="w-4 h-4 text-law-blue mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-sm font-semibold text-gray-800">Download Document</span>
+              <div className="mt-6 p-5 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 rounded-2xl border-2 border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">Export Document</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => handleDownload('docx')}
-                    className="flex items-center space-x-3 px-5 py-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 text-sm border border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md group"
+                    className="group relative flex items-center space-x-3 px-5 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl transition-all duration-300 text-sm border-2 border-blue-400/30 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:scale-105 active:scale-95 overflow-hidden"
                   >
-                    {/* Microsoft Word Logo */}
-                    <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-7 h-7 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center relative z-10">
                       <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12.5 2L3 4.5v15L12.5 22l9.5-2.5v-15L12.5 2zM8.5 7.5h2v9h-2v-9zm4 0h2v9h-2v-9z"/>
                       </svg>
                     </div>
-                    <span className="font-semibold text-blue-700 group-hover:text-blue-800">Download as Word</span>
+                    <span className="font-bold text-white relative z-10">Download as Word</span>
                   </button>
                   <button
                     onClick={() => handleDownload('csv')}
-                    className="flex items-center space-x-3 px-5 py-3 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 text-sm border border-green-200 hover:border-green-300 shadow-sm hover:shadow-md group"
+                    className="group relative flex items-center space-x-3 px-5 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-xl transition-all duration-300 text-sm border-2 border-emerald-400/30 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transform hover:scale-105 active:scale-95 overflow-hidden"
                   >
-                    {/* Microsoft Excel Logo */}
-                    <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-7 h-7 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center relative z-10">
                       <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M3 3h18v18H3V3zm3 3v12h12V6H6zm2 2h8v2H8V8zm0 3h8v2H8v-2zm0 3h8v2H8v-2z"/>
                       </svg>
                     </div>
-                    <span className="font-semibold text-green-700 group-hover:text-green-800">Download as Excel</span>
+                    <span className="font-bold text-white relative z-10">Download as Excel</span>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Timestamp - ChatGPT Style */}
-            <div className="mt-2 text-xs text-gray-500">
-              {formatTime(timestamp)}
+            {/* Modern Timestamp */}
+            <div className="mt-3 flex items-center space-x-2 text-xs text-slate-500">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">{formatTime(timestamp)}</span>
             </div>
           </div>
         </div>

@@ -87,33 +87,40 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* Modern Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 flex items-center space-x-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50"
+        className="fixed top-5 left-5 z-50 flex items-center space-x-2 px-4 py-2.5 bg-white/90 backdrop-blur-md border-2 border-slate-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white hover:border-blue-300 transform hover:scale-105 active:scale-95 group"
         title="Chat History"
       >
-        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
-        <span className="text-sm font-medium text-gray-700">Chat History</span>
+        <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">History</span>
       </button>
 
-      {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-full w-80 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-300 z-40 ${
+      {/* Modern Sidebar */}
+      <div className={`fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-white to-slate-50 border-r-2 border-slate-200 shadow-2xl transform transition-all duration-300 z-40 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Chat History</h2>
+          {/* Modern Header */}
+          <div className="p-5 border-b-2 border-slate-200 bg-gradient-to-r from-white to-slate-50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">Chat History</h2>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 hover:scale-110"
               >
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-5 h-5 text-slate-500 hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -122,21 +129,29 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
                 onNewChat();
                 setIsOpen(false);
               }}
-              className="w-full mt-3 px-4 py-2 bg-law-blue text-white rounded-lg hover:bg-law-blue-dark transition-colors text-sm font-medium"
+              className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
             >
-              + New Chat
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>New Chat</span>
             </button>
           </div>
 
-          {/* Chat List */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Modern Chat List */}
+          <div className="flex-1 overflow-y-auto chat-scrollbar p-3">
             {chatSessions.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
-                <p className="text-sm">No chat history yet</p>
-                <p className="text-xs mt-1">Start a conversation to see it here</p>
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-semibold text-slate-700">No chat history yet</p>
+                <p className="text-xs text-slate-500 mt-1">Start a conversation to see it here</p>
               </div>
             ) : (
-              <div className="p-2">
+              <div className="space-y-2">
                 {chatSessions.map((session) => (
                   <div
                     key={session.id}
@@ -144,26 +159,48 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
                       onLoadChat(session.id);
                       setIsOpen(false);
                     }}
-                    className={`p-3 mb-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                      currentChatId === session.id ? 'bg-blue-50 border border-blue-200' : ''
+                    className={`group p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-102 hover:shadow-md ${
+                      currentChatId === session.id 
+                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 shadow-lg' 
+                        : 'bg-white hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-2 border-slate-100 hover:border-blue-200'
                     }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">
-                          {session.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {session.messageCount} messages • {formatTime(session.timestamp)}
-                        </p>
+                      <div className="flex-1 min-w-0 flex items-start space-x-3">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm ${
+                          currentChatId === session.id 
+                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                            : 'bg-gradient-to-br from-slate-200 to-slate-300 group-hover:from-blue-400 group-hover:to-indigo-500'
+                        } transition-all duration-300`}>
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`text-sm font-bold truncate ${
+                            currentChatId === session.id ? 'text-blue-900' : 'text-gray-900'
+                          }`}>
+                            {session.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-1.5 flex items-center space-x-2">
+                            <span className="flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                              </svg>
+                              {session.messageCount}
+                            </span>
+                            <span>•</span>
+                            <span>{formatTime(session.timestamp)}</span>
+                          </p>
+                        </div>
                       </div>
                       <button
                         onClick={(e) => deleteChat(session.id, e)}
-                        className="ml-2 p-1 hover:bg-red-100 rounded text-red-500 hover:text-red-700"
+                        className="ml-2 p-2 hover:bg-red-100 rounded-lg text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
                         title="Delete chat"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>
@@ -175,11 +212,11 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
         </div>
       </div>
 
-      {/* Overlay */}
+      {/* Modern Overlay with Blur */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 transition-all duration-300"
         />
       )}
     </>

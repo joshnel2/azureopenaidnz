@@ -217,28 +217,46 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white">
+    <div className="border-t border-gray-200/50 bg-white/80 backdrop-blur-xl shadow-2xl">
       <div className="max-w-4xl mx-auto p-4">
-      {/* File Upload Area */}
+      {/* Modern File Upload Area */}
       {uploadedFiles.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-800">Uploaded Files:</span>
+        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200/50 rounded-2xl shadow-lg animate-slide-in-up">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </div>
+              <span className="text-sm font-bold text-blue-900">Uploaded Files</span>
+            </div>
           </div>
           <div className="space-y-2">
             {uploadedFiles.map((fileWithContent, index) => (
-              <div key={index} className="flex items-center justify-between bg-white px-3 py-2 rounded border">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-sm text-gray-700">{fileWithContent.file.name}</span>
-                  <span className="text-xs text-gray-500">({Math.round(fileWithContent.file.size / 1024)}KB)</span>
-                  <span className="text-xs text-green-600">✓ Content loaded</span>
+              <div key={index} className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-900">{fileWithContent.file.name}</span>
+                    <div className="flex items-center space-x-2 mt-0.5">
+                      <span className="text-xs text-gray-500">({Math.round(fileWithContent.file.size / 1024)}KB)</span>
+                      <span className="text-xs text-green-600 font-medium flex items-center">
+                        <svg className="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Loaded
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={() => removeFile(index)}
-                  className="text-red-500 hover:text-red-700 text-sm"
+                  className="text-red-500 hover:text-red-700 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all duration-200"
                 >
                   Remove
                 </button>
@@ -248,9 +266,10 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
         </div>
       )}
 
-      {/* Main Input Area */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div className="p-4">
+      {/* Modern Input Area with Gradient Border */}
+      <div className="relative bg-white rounded-2xl border-2 border-slate-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 pointer-events-none"></div>
+        <div className="relative p-4">
           <textarea
             value={message}
             onChange={(e) => {
@@ -262,18 +281,18 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
             }}
             onKeyPress={handleKeyPress}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question, request document analysis, or get help with drafting or editing..."
+            placeholder="Ask a question, analyze documents, or get help with drafting..."
             disabled={false}
             rows={1}
-            className="w-full px-0 py-2 border-none resize-none focus:outline-none text-gray-800 placeholder-gray-500"
+            className="w-full px-0 py-2 border-none resize-none focus:outline-none text-gray-800 placeholder-gray-400 bg-transparent"
             style={{ minHeight: '24px', maxHeight: '120px' }}
           />
         </div>
 
-        {/* Action Buttons Bar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-xl">
-          <div className="flex items-center space-x-3">
-            {/* File Upload Button */}
+        {/* Modern Action Bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/30 border-t-2 border-slate-100 rounded-b-2xl">
+          <div className="flex items-center space-x-2">
+            {/* Modern File Upload Button */}
             <button
               type="button"
               onClick={(e) => {
@@ -282,18 +301,18 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
                 fileInputRef.current?.click();
               }}
               disabled={false}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-law-blue hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 border border-transparent hover:border-blue-200"
+              className="flex items-center space-x-2 px-4 py-2.5 text-sm text-slate-700 hover:text-blue-700 bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-xl transition-all duration-300 disabled:opacity-50 border-2 border-slate-200 hover:border-blue-300 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95 font-semibold"
               title="Upload documents for analysis"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
-              <span className="font-medium">Upload Files</span>
+              <span>Attach</span>
             </button>
 
           </div>
 
-          {/* Send or Cancel Button */}
+          {/* Enhanced Send or Cancel Button */}
           {isLoading ? (
             <button
               type="button"
@@ -302,11 +321,11 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
                 e.stopPropagation();
                 onCancel?.();
               }}
-              className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+              className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 font-bold"
             >
-              <span className="text-sm font-semibold">Cancel</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <span className="text-sm">Stop</span>
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
               </svg>
             </button>
           ) : (
@@ -318,11 +337,12 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
                 handleSubmit();
               }}
               disabled={!message.trim() && uploadedFiles.length === 0}
-              className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-law-blue to-law-blue-dark text-white rounded-lg hover:from-law-blue-dark hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-law-blue focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+              className="relative flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-700 hover:via-blue-700 hover:to-cyan-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-blue-500/50 transform hover:scale-105 active:scale-95 disabled:transform-none disabled:shadow-none font-bold overflow-hidden"
             >
-              <span className="text-sm font-semibold">Send</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <div className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity"></div>
+              <span className="text-sm relative z-10">Send</span>
+              <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
           )}
@@ -339,10 +359,10 @@ export default function InputBox({ onSendMessage, onCancel, isLoading = false }:
         className="hidden"
       />
 
-        {/* Internal Use Notice */}
-        <div className="mt-3 text-center">
-          <p className="text-xs text-gray-500">
-            Internal Assistant • For Dorf Nelson & Zauderer LLP staff use only • Confidential work product
+        {/* Modern Internal Use Notice */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-slate-500 font-medium">
+            🔒 Internal Assistant • For DNZ LLP staff use only • Confidential work product
           </p>
         </div>
       </div>
