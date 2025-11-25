@@ -179,15 +179,9 @@ export default function ChatWindow() {
   };
 
   const handleSendMessage = async (aiContent: string, displayContent?: string, enableWebSearch?: boolean) => {
-    // Update activity timestamp
-    lastActivityRef.current = Date.now();
-    
-    // Clear any previous errors when user sends a message
-    clearError();
-    
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: displayContent || aiContent, // Use display content for user message bubble
+      content: displayContent || aiContent,
       role: 'user',
       timestamp: new Date(),
     };
@@ -197,136 +191,132 @@ export default function ChatWindow() {
     setIsLoading(true);
     setStreamingMessage('');
 
-    abortControllerRef.current = new AbortController();
-
-    try {
-      // Check if this message contains uploaded files
-      const hasUploadedFiles = aiContent.includes('--- UPLOADED FILES FOR ANALYSIS ---');
-      
-      // Check if user is explicitly asking about previous documents/context
-      const userText = displayContent?.toLowerCase() || aiContent.toLowerCase();
-      const referencingPrevious = /\b(both|previous|earlier|first|compare|all|these|those|prior|last)\b/.test(userText) ||
-                                  /\b(document|file|upload)s\b/.test(userText); // plural forms
-      
-      // If files are uploaded, only send current message (isolate document context)
-      // UNLESS user explicitly references previous documents
-      const messagesToSend = (hasUploadedFiles && !referencingPrevious)
-        ? [{
+    // Check if this message contains uploaded files
+    const hasUploadedFiles = aiContent.includes('--- UPLOADED FILES FOR ANALYSIS ---');
+    
+    // Check if user is explicitly asking about previous documents/context
+    const userText = displayContent?.toLowerCase() || aiContent.toLowerCase();
+    const referencingPrevious = /\b(both|previous|earlier|first|compare|all|these|those|prior|last)\b/.test(userText) ||
+                                /\b(document|file|upload)s\b/.test(userText);
+    
+    const messagesToSend = (hasUploadedFiles && !referencingPrevious)
+      ? [{
+          role: 'user' as const,
+          content: aiContent
+        }]
+      : [
+          ...messages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          {
             role: 'user' as const,
             content: aiContent
-          }]
-        : [
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
-            {
-              role: 'user' as const,
-              content: aiContent
-            }
-          ];
+          }
+        ];
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: messagesToSend
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+    // Auto-retry logic for stale connections
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-      if (!response.ok) {
-        const statusText = response.status === 503 ? 'Service temporarily unavailable' :
-                          response.status === 500 ? 'Server error' :
-                          response.status === 429 ? 'Too many requests, please wait a moment' :
-                          'Failed to get response';
-        throw new Error(statusText);
-      }
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      // Create fresh AbortController for each attempt
+      abortControllerRef.current = new AbortController();
+      
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: messagesToSend
+          }),
+          signal: abortControllerRef.current.signal,
+        });
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-      let assistantMessage = '';
-      const decoder = new TextDecoder();
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No response body');
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        let assistantMessage = '';
+        const decoder = new TextDecoder();
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') {
-              break;
-            }
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.error) {
-                throw new Error(parsed.error);
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') {
+                break;
               }
-              if (parsed.content) {
-                assistantMessage += parsed.content;
-                setStreamingMessage(assistantMessage);
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  assistantMessage += parsed.content;
+                  setStreamingMessage(assistantMessage);
+                }
+              } catch (e) {
+                // Ignore parsing errors for malformed chunks
               }
-            } catch (e) {
-              // Ignore parsing errors for malformed chunks
             }
           }
         }
-      }
 
-      if (assistantMessage) {
-        const assistantMessageObj: Message = {
-          id: (Date.now() + 1).toString(),
-          content: assistantMessage,
-          role: 'assistant',
-          timestamp: new Date(),
-        };
-        const finalMessages = [...updatedMessages, assistantMessageObj];
-        setMessages(finalMessages);
-        
-        // Save chat session to history
-        saveChatSession(finalMessages);
-        
-        // Mark connection as healthy after successful response
-        setConnectionStatus('connected');
-      }
-      
-      // Update activity timestamp after successful request
-      lastActivityRef.current = Date.now();
-      
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        // Request was cancelled, do nothing
-      } else {
-        console.error('Error in chat:', error);
-        
-        // Show user-friendly error message
-        const errorMsg = error.message || 'Something went wrong';
-        
-        // Check if it's a network/connection error
-        if (error.message?.includes('fetch') || error.message?.includes('network') || error.name === 'TypeError') {
-          setConnectionStatus('error');
-          setErrorMessage('Connection lost. Please check your internet connection and click "Reconnect".');
-        } else {
-          setErrorMessage(`Error: ${errorMsg}. Please try again.`);
+        if (assistantMessage) {
+          const assistantMessageObj: Message = {
+            id: (Date.now() + 1).toString(),
+            content: assistantMessage,
+            role: 'assistant',
+            timestamp: new Date(),
+          };
+          const finalMessages = [...updatedMessages, assistantMessageObj];
+          setMessages(finalMessages);
+          saveChatSession(finalMessages);
+        }
+
+        // Success - exit retry loop
+        setIsLoading(false);
+        setStreamingMessage('');
+        abortControllerRef.current = null;
+        return;
+
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          // User cancelled - exit immediately
+          setIsLoading(false);
+          setStreamingMessage('');
+          abortControllerRef.current = null;
+          return;
         }
         
-        // Remove the user message that failed to send (optional - keep it so user can retry)
-        // setMessages(messages);
+        lastError = error;
+        
+        // Wait before retrying (exponential backoff: 500ms, 1s, 2s)
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+        }
       }
-    } finally {
-      setIsLoading(false);
-      setStreamingMessage('');
-      abortControllerRef.current = null;
     }
+
+    // All retries failed - log but don't show error to user, just stop loading
+    if (lastError) {
+      console.error('Chat request failed after retries:', lastError);
+    }
+    
+    setIsLoading(false);
+    setStreamingMessage('');
+    abortControllerRef.current = null;
   };
 
   const clearChat = () => {
