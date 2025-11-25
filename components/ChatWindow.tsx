@@ -21,6 +21,23 @@ export default function ChatWindow() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Reset stale state when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Clean up any stale request state when returning to tab
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
+        setIsLoading(false);
+        setStreamingMessage('');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // Load messages from localStorage on component mount
   useEffect(() => {
     loadChat(currentChatId);
@@ -225,18 +242,29 @@ export default function ChatWindow() {
             }
           ];
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: messagesToSend
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+      // Fetch with simple retry for stale connections
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: messagesToSend
+            }),
+            signal: abortControllerRef.current.signal,
+          });
+          if (response.ok) break;
+        } catch (e: any) {
+          if (e.name === 'AbortError') throw e;
+          if (attempt === 2) throw e;
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error('Failed to get response');
       }
 
