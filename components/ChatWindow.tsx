@@ -309,11 +309,8 @@ export default function ChatWindow() {
       }
     }
 
-    // All retries failed - log but don't show error to user, just stop loading
-    if (lastError) {
-      console.error('Chat request failed after retries:', lastError);
-    }
-    
+    // All retries failed - silently remove user message so they can try again
+    setMessages(messages);
     setIsLoading(false);
     setStreamingMessage('');
     abortControllerRef.current = null;
