@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 import InputBox from './InputBox';
 import ChatHistory from './ChatHistory';
@@ -12,119 +12,14 @@ interface Message {
   timestamp: Date;
 }
 
-type ConnectionStatus = 'connected' | 'reconnecting' | 'error';
-
 export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [currentChatId, setCurrentChatId] = useState<string>('default');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
-  const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Check API health
-  const checkHealth = useCallback(async (): Promise<boolean> => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch('/api/health', {
-        method: 'GET',
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  // Handle reconnection
-  const handleReconnect = useCallback(async () => {
-    setConnectionStatus('reconnecting');
-    setErrorMessage(null);
-    
-    const isHealthy = await checkHealth();
-    
-    if (isHealthy) {
-      setConnectionStatus('connected');
-      setErrorMessage(null);
-    } else {
-      setConnectionStatus('error');
-      setErrorMessage('Unable to connect to the server. Please check your connection and try again.');
-    }
-  }, [checkHealth]);
-
-  // Handle visibility change (tab becoming active again)
-  useEffect(() => {
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
-        const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-        
-        // If the tab has been inactive for more than 2 minutes, check health
-        if (timeSinceLastActivity > 2 * 60 * 1000) {
-          const isHealthy = await checkHealth();
-          if (!isHealthy) {
-            setConnectionStatus('error');
-            setErrorMessage('Connection may be stale. Click "Reconnect" to restore the connection.');
-          } else {
-            setConnectionStatus('connected');
-            setErrorMessage(null);
-          }
-        }
-        
-        lastActivityRef.current = Date.now();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [checkHealth]);
-
-  // Periodic health check when tab is visible (every 5 minutes)
-  useEffect(() => {
-    const startHealthCheck = () => {
-      if (healthCheckIntervalRef.current) {
-        clearInterval(healthCheckIntervalRef.current);
-      }
-      
-      healthCheckIntervalRef.current = setInterval(async () => {
-        if (document.visibilityState === 'visible' && !isLoading) {
-          const isHealthy = await checkHealth();
-          if (!isHealthy && connectionStatus === 'connected') {
-            setConnectionStatus('error');
-            setErrorMessage('Connection lost. Click "Reconnect" to restore.');
-          } else if (isHealthy && connectionStatus === 'error') {
-            setConnectionStatus('connected');
-            setErrorMessage(null);
-          }
-        }
-      }, 5 * 60 * 1000); // Check every 5 minutes
-    };
-
-    startHealthCheck();
-    
-    return () => {
-      if (healthCheckIntervalRef.current) {
-        clearInterval(healthCheckIntervalRef.current);
-      }
-    };
-  }, [checkHealth, connectionStatus, isLoading]);
-
-  // Clear error message after successful message send
-  const clearError = useCallback(() => {
-    setConnectionStatus('connected');
-    setErrorMessage(null);
-  }, []);
 
   // Load messages from localStorage on component mount
   useEffect(() => {
@@ -284,6 +179,12 @@ export default function ChatWindow() {
   };
 
   const handleSendMessage = async (aiContent: string, displayContent?: string, enableWebSearch?: boolean) => {
+    // Update activity timestamp
+    lastActivityRef.current = Date.now();
+    
+    // Clear any previous errors when user sends a message
+    clearError();
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       content: displayContent || aiContent, // Use display content for user message bubble
@@ -337,7 +238,11 @@ export default function ChatWindow() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const statusText = response.status === 503 ? 'Service temporarily unavailable' :
+                          response.status === 500 ? 'Server error' :
+                          response.status === 429 ? 'Too many requests, please wait a moment' :
+                          'Failed to get response';
+        throw new Error(statusText);
       }
 
       const reader = response.body?.getReader();
@@ -389,12 +294,33 @@ export default function ChatWindow() {
         
         // Save chat session to history
         saveChatSession(finalMessages);
+        
+        // Mark connection as healthy after successful response
+        setConnectionStatus('connected');
       }
+      
+      // Update activity timestamp after successful request
+      lastActivityRef.current = Date.now();
+      
     } catch (error: any) {
       if (error.name === 'AbortError') {
         // Request was cancelled, do nothing
       } else {
         console.error('Error in chat:', error);
+        
+        // Show user-friendly error message
+        const errorMsg = error.message || 'Something went wrong';
+        
+        // Check if it's a network/connection error
+        if (error.message?.includes('fetch') || error.message?.includes('network') || error.name === 'TypeError') {
+          setConnectionStatus('error');
+          setErrorMessage('Connection lost. Please check your internet connection and click "Reconnect".');
+        } else {
+          setErrorMessage(`Error: ${errorMsg}. Please try again.`);
+        }
+        
+        // Remove the user message that failed to send (optional - keep it so user can retry)
+        // setMessages(messages);
       }
     } finally {
       setIsLoading(false);
