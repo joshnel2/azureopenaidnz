@@ -188,9 +188,14 @@ export default function ChatWindow() {
 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    setIsLoading(true);
+    
+    // Clean up any stale state before starting
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setStreamingMessage('');
-
+    setIsLoading(true);
+    
     abortControllerRef.current = new AbortController();
 
     try {
