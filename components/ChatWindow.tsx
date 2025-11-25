@@ -12,22 +12,6 @@ interface Message {
   timestamp: Date;
 }
 
-// Simple retry wrapper for fetch - handles stale connections after tab is inactive
-const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-      throw new Error(`HTTP ${response.status}`);
-    } catch (error: any) {
-      if (error.name === 'AbortError') throw error;
-      if (attempt === maxRetries - 1) throw error;
-      await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
-    }
-  }
-  throw new Error('Max retries reached');
-};
-
 export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -236,7 +220,7 @@ export default function ChatWindow() {
             }
           ];
 
-      const response = await fetchWithRetry('/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -246,6 +230,10 @@ export default function ChatWindow() {
         }),
         signal: abortControllerRef.current.signal,
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
 
       const reader = response.body?.getReader();
       if (!reader) {
