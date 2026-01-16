@@ -16,8 +16,8 @@ interface ChatHistoryProps {
   refreshTrigger?: number;
 }
 
-// 30 days in milliseconds
-const RETENTION_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
+// 90 days in milliseconds
+const RETENTION_PERIOD_MS = 90 * 24 * 60 * 60 * 1000;
 
 export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refreshTrigger }: ChatHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
