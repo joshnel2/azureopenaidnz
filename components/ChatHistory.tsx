@@ -178,17 +178,19 @@ export default function ChatHistory({ onLoadChat, onNewChat, currentChatId, refr
 
   return (
     <>
-      {/* Modern Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-5 left-5 z-50 flex items-center space-x-2 px-4 py-2.5 bg-white/90 backdrop-blur-md border-2 border-slate-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white hover:border-blue-300 transform hover:scale-105 active:scale-95 group"
-        title="Chat History"
-      >
+      {/* Modern Toggle Button - Hidden when sidebar is open */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed top-5 left-5 z-50 flex items-center space-x-2 px-4 py-2.5 bg-white/90 backdrop-blur-md border-2 border-slate-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white hover:border-blue-300 transform hover:scale-105 active:scale-95 group"
+          title="Chat History"
+        >
         <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
         <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">History</span>
-      </button>
+        </button>
+      )}
 
       {/* Modern Sidebar */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-white to-slate-50 border-r-2 border-slate-200 shadow-2xl transform transition-all duration-300 z-40 ${
