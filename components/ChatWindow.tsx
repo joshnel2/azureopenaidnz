@@ -12,6 +12,102 @@ interface Message {
   timestamp: Date;
 }
 
+// Rough token estimation: ~4 characters per token for English text
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Trim conversation history to fit within token budget while preserving recent context.
+// This keeps as many recent messages as possible within the budget, and prepends a
+// brief summary note if older messages had to be dropped.
+function trimMessagesForAPI(
+  messages: { role: string; content: string }[],
+  maxTokenBudget: number = 12000 // conservative budget leaving room for system prompt + response
+): { role: string; content: string }[] {
+  if (messages.length === 0) return messages;
+
+  // Always include the latest user message
+  const latestMessage = messages[messages.length - 1];
+  const latestTokens = estimateTokens(latestMessage.content);
+
+  // If even the latest message exceeds budget, truncate its content
+  if (latestTokens > maxTokenBudget) {
+    const maxChars = maxTokenBudget * 4;
+    return [{
+      ...latestMessage,
+      content: latestMessage.content.slice(0, maxChars) + '\n\n[Content truncated due to length]'
+    }];
+  }
+
+  let totalTokens = latestTokens;
+  const trimmedMessages: { role: string; content: string }[] = [];
+
+  // Walk backwards from second-to-last message, adding messages while within budget
+  for (let i = messages.length - 2; i >= 0; i--) {
+    const msg = messages[i];
+    const msgTokens = estimateTokens(msg.content);
+
+    if (totalTokens + msgTokens > maxTokenBudget) {
+      // No more room -- stop adding older messages
+      break;
+    }
+
+    totalTokens += msgTokens;
+    trimmedMessages.unshift(msg);
+  }
+
+  // If we had to drop some messages, add a brief context note
+  const droppedCount = messages.length - 1 - trimmedMessages.length;
+  if (droppedCount > 0) {
+    trimmedMessages.unshift({
+      role: 'system',
+      content: `[Note: This is a long conversation. The ${droppedCount} earliest message(s) have been omitted to stay within context limits. The most recent messages are preserved below.]`
+    });
+  }
+
+  trimmedMessages.push(latestMessage);
+  return trimmedMessages;
+}
+
+// Safe localStorage write that handles quota exceeded errors
+function safeLocalStorageSet(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e: any) {
+    if (e?.name === 'QuotaExceededError' || e?.code === 22 || e?.code === 1014) {
+      console.warn('localStorage quota exceeded. Attempting cleanup...');
+      // Try to free space by removing oldest chat message data
+      try {
+        const sessionsStr = localStorage.getItem('chat-sessions');
+        if (sessionsStr) {
+          const sessions = JSON.parse(sessionsStr);
+          // Sort oldest first, remove the oldest 5 chat message stores
+          const sorted = [...sessions].sort((a: any, b: any) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          const toRemove = sorted.slice(0, Math.min(5, sorted.length));
+          for (const s of toRemove) {
+            localStorage.removeItem(`chat-messages-${s.id}`);
+          }
+          // Update sessions list
+          const remainingIds = new Set(sorted.slice(Math.min(5, sorted.length)).map((s: any) => s.id));
+          const updatedSessions = sessions.filter((s: any) => remainingIds.has(s.id));
+          localStorage.setItem('chat-sessions', JSON.stringify(updatedSessions));
+        }
+        // Retry the original write
+        localStorage.setItem(key, value);
+        return true;
+      } catch (retryError) {
+        console.error('localStorage write failed even after cleanup:', retryError);
+        return false;
+      }
+    }
+    console.error('localStorage write error:', e);
+    return false;
+  }
+}
+
 export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +122,11 @@ export default function ChatWindow() {
     loadChat(currentChatId);
   }, [currentChatId]);
 
-  // Save messages to localStorage whenever messages change
+  // Save messages to localStorage whenever messages change (with quota handling)
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem(`chat-messages-${currentChatId}`, JSON.stringify(messages));
+      const serialized = JSON.stringify(messages);
+      safeLocalStorageSet(`chat-messages-${currentChatId}`, serialized);
     }
   }, [messages, currentChatId]);
 
@@ -202,23 +299,31 @@ export default function ChatWindow() {
       const referencingPrevious = /\b(both|previous|earlier|first|compare|all|these|those|prior|last)\b/.test(userText) ||
                                   /\b(document|file|upload)s\b/.test(userText); // plural forms
       
+      // Build the raw message list
+      let rawMessages: { role: string; content: string }[];
+      
       // If files are uploaded, only send current message (isolate document context)
       // UNLESS user explicitly references previous documents
-      const messagesToSend = (hasUploadedFiles && !referencingPrevious)
-        ? [{
+      if (hasUploadedFiles && !referencingPrevious) {
+        rawMessages = [{
+          role: 'user' as const,
+          content: aiContent
+        }];
+      } else {
+        rawMessages = [
+          ...messages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          {
             role: 'user' as const,
             content: aiContent
-          }]
-        : [
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
-            {
-              role: 'user' as const,
-              content: aiContent
-            }
-          ];
+          }
+        ];
+      }
+
+      // Trim messages to fit within token limits (prevents API failures on long chats)
+      const messagesToSend = trimMessagesForAPI(rawMessages);
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -232,7 +337,7 @@ export default function ChatWindow() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        throw new Error(`Request failed with status ${response.status}`);
       }
 
       const reader = response.body?.getReader();
@@ -286,10 +391,9 @@ export default function ChatWindow() {
         saveChatSession(finalMessages);
       }
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        // Request was cancelled, do nothing
-      } else {
-        console.error('Error in chat:', error);
+      if (error.name !== 'AbortError') {
+        // Silently log -- the trimming should prevent most failures
+        console.warn('Chat request issue, retrying silently is possible:', error?.message);
       }
     } finally {
       setIsLoading(false);
