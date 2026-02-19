@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 
 interface MessageBubbleProps {
@@ -308,8 +309,12 @@ export default function MessageBubble({ message, isUser, timestamp }: MessageBub
               </button>
             )}
             
-            <div className="prose prose-sm max-w-none">
-              <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>
+            <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-900 prose-strong:text-gray-900 prose-li:text-gray-900 prose-a:text-blue-600 prose-a:underline prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-xl">
+              {isUser ? (
+                <p className="text-gray-900 leading-relaxed whitespace-pre-wrap m-0">{message}</p>
+              ) : (
+                <ReactMarkdown>{message}</ReactMarkdown>
+              )}
             </div>
             
             {/* File attachment indicator */}
