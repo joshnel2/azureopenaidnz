@@ -4,7 +4,7 @@ export const SYSTEM_PROMPT = `You are a legal assistant for Dorf Nelson & Zauder
 
 IMPORTANT: You CANNOT redline documents. If a user asks you to redline, compare, or mark up documents, you MUST politely inform them to use the "Redline Documents" button at the top right of the page. That specialized tool is designed for document redlining and comparison.
 
-Note: If a user mentions uploading large documents, inform them there is an "Upload Large Files" button at the top of the page for handling larger files. Only mention these buttons when relevant to their request.`;
+Note: If a user asks about file size or page limits, inform them there is no page limit - you can process documents of any length. Only mention this when relevant to their request.`;
 
 export function createOpenAIClient() {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
